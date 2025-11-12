@@ -1,0 +1,79 @@
+id=FT500i	modelo=Fiat 500 1.0	categoria=MINI	marca=Fiat	lotacao=4	bagagem=1	preco=2040	
+id=UP80	modelo=VW Up 80cv	categoria=MINI	marca=VW	lotacao=4	bagagem=1	preco=1610	
+id=SWF	modelo=Suzuki Swift	categoria=MINI	marca=Suzuki	lotacao=4	bagagem=1	preco=1580	
+id=HY10	modelo=Hyundai I10 1.2	categoria=MINI	marca=Hyundai	lotacao=4	bagagem=1	preco=1610	
+id=FP12	modelo=Fiat Panda 1.2	categoria=MINI	marca=Fiat	lotacao=5	bagagem=2	preco=1690	
+id=TTY	modelo=Toyota Yaris	categoria=MINI	marca=Toyota	lotacao=4	bagagem=2	preco=2000	
+id=TTAY	modelo=Toyota Aygo	categoria=MINI	marca=Toyota	lotacao=4	bagagem=1	preco=1705	
+id=VWPL	modelo=VW Polo 1.0 	categoria=COMPACTA	marca=VW	lotacao=5	bagagem=2	preco=2220	
+id=STIB	modelo=Seat Ibiza 1.0	categoria=COMPACTA	marca=Seat	lotacao=5	bagagem=2	preco=2050	
+id=SKFB	modelo=Skoda Fabia 1.0	categoria=COMPACTA	marca=Skoda	lotacao=5	bagagem=2	preco=2150	
+id=OPCS	modelo=Opel Corsa 1.0	categoria=COMPACTA	marca=Opel	lotacao=5	bagagem=2	preco=2075	
+id=OPAS	modelo=Opel Astra 1.2	categoria=COMPACTA	marca=Opel	lotacao=5	bagagem=2	preco=2530	
+id=HY20	modelo=Hyundai I20 1.0	categoria=COMPACTA	marca=Hyundai	lotacao=5	bagagem=2	preco=2133	
+id=CT3	modelo=Citroen C3 1.0	categoria=COMPACTA	marca=Citroen	lotacao=5	bagagem=2	preco=2085	
+id=VWGF	modelo=VW Golf 1.2	categoria=COMPACTA	marca=VW	lotacao=5	bagagem=3	preco=2710	
+id=SKSC	modelo=Skoda Scala 1.0	categoria=COMPACTA	marca=Skoda	lotacao=5	bagagem=3	preco=2590	
+id=STLE	modelo=Seat Leon 1.0	categoria=COMPACTA	marca=Seat	lotacao=5	bagagem=3	preco=2580	
+id=HY30	modelo=Hyundai i30 1.0	categoria=COMPACTA	marca=Hyundai	lotacao=5	bagagem=3	preco=2630	
+id=MI12	modelo=Mini 1.2	categoria=COMPACTA	marca=Mini	lotacao=5	bagagem=2	preco=2425	
+id=PG28	modelo=Peugeot 208 1.0	categoria=COMPACTA	marca=Peugeot	lotacao=5	bagagem=2	preco=2160	
+id=PG38	modelo=Peugeot 308 1.0	categoria=COMPACTA	marca=Peugeot	lotacao=5	bagagem=2	preco=2610	
+id=TTC	modelo=Toyota Corolla 1.8	categoria=COMPACTA	marca=Toyota	lotacao=5	bagagem=3	preco=2750	
+id=STTO	modelo=Seat Toledo 1.5	categoria=FAMILIAR	marca=Seat	lotacao=5	bagagem=4	preco=3320	
+id=SKOT	modelo=Skoda Octavia 1.5	categoria=FAMILIAR	marca=Skoda	lotacao=5	bagagem=5	preco=3420	
+id=VWPA	modelo=VW Passat 1.5	categoria=FAMILIAR	marca=VW	lotacao=5	bagagem=4	preco=3510	
+id=BMW3	modelo=BMW 320i	categoria=FAMILIAR	marca=BMW	lotacao=5	bagagem=3	preco=3720	
+id=PG48	modelo=Peugeot 408	categoria=FAMILIAR	marca=Peugeot	lotacao=5	bagagem=3	preco=3548	
+id=PG58	modelo=Peugeot 508	categoria=FAMILIAR	marca=Peugeot	lotacao=5	bagagem=4	preco=4056	
+id=CT4	modelo=Citroen C4 1.5	categoria=FAMILIAR	marca=Citroen	lotacao=5	bagagem=4	preco=3310	
+id=AD4	modelo=Audi A4 1.5	categoria=FAMILIAR	marca=Audi	lotacao=5	bagagem=4	preco=3580	
+id=RNL	modelo=Renault Laguna 1.4	categoria=FAMILIAR	marca=Renault	lotacao=5	bagagem=4	preco=3425	
+id=SKSP	modelo=Skoda Superb 1.5	categoria=FAMILIAR	marca=Skoda	lotacao=5	bagagem=5	preco=4025	
+id=BMW4	modelo=BMW 4 grand Coupe	categoria=FAMILIAR	marca=BMW	lotacao=5	bagagem=4	preco=4520	
+id=BMW5	modelo=BMW 525i	categoria=LUXO	marca=BMW	lotacao=5	bagagem=4	preco=7020	
+id=AD6	modelo=Audi A6	categoria=LUXO	marca=Audi	lotacao=5	bagagem=4	preco=7260	
+id=BWM5	modelo=BMW M5	categoria=LUXO	marca=BMW	lotacao=4	bagagem=4	preco=10020	
+id=AD6R	modelo=AUDI RS6	categoria=LUXO	marca=Audi	lotacao=4	bagagem=4	preco=10020	
+id=ALFAQ	modelo=Alfa Romeo Giulia Quadrifolio 	categoria=LUXO	marca=Alfa Romeo	lotacao=4	bagagem=4	preco=12020	
+id=MER3	modelo=Mercedes E300	categoria=LUXO	marca=Mercedes	lotacao=5	bagagem=4	preco=11111	
+id=F480	modelo=Ferrari 480	categoria=LUXO	marca=Ferrari	lotacao=2	bagagem=1	preco=27020	
+id=LAMH	modelo=Lamborghini Huracan	categoria=LUXO	marca=Lamborghini	lotacao=2	bagagem=1	preco=26520	
+id=MASGT	modelo=Maserati Granturismo	categoria=LUXO	marca=Maserati	lotacao=2	bagagem=1	preco=17520	
+id=FT124	modelo=Fiat 124	categoria=DESCAPOTAVEL	marca=Fiat	lotacao=2	bagagem=1	preco=3460	
+id=MZ5	modelo=Mazda MX5	categoria=DESCAPOTAVEL	marca=Mazda	lotacao=2	bagagem=1	preco=3460	
+id=FT500c	modelo=Fiat 500 cabrio	categoria=DESCAPOTAVEL	marca=Fiat	lotacao=4	bagagem=1	preco=3010	
+id=BMWZ4	modelo=BMW Z4	categoria=DESCAPOTAVEL	marca=BMW	lotacao=2	bagagem=1	preco=4210	
+id=MNJCC	modelo=Mini John Copper Cabrio	categoria=DESCAPOTAVEL	marca=Mini	lotacao=4	bagagem=2	preco=3350	
+id=MEREC	modelo=Mercedes E220 Cabriolet	categoria=DESCAPOTAVEL	marca=Mercedes	lotacao=4	bagagem=3	preco=10101	
+id=CT3A	modelo=Citroen C3 Aircross	categoria=SUV	marca=Citroen	lotacao=5	bagagem=3	preco=2548	
+id=VWTR	modelo=VW  T-Roc	categoria=SUV	marca=VW	lotacao=5	bagagem=3	preco=2756	
+id=DCS	modelo=Dacia Spring	categoria=SUV	marca=Dacia	lotacao=5	bagagem=3	preco=2480	
+id=DCSA	modelo=Dacia Sandero	categoria=SUV	marca=Dacia	lotacao=5	bagagem=2	preco=2270	
+id=FTGP	modelo=Fiat Grande Panda	categoria=SUV	marca=Fiat	lotacao=5	bagagem=3	preco=2855	
+id=CT4A	modelo=Citroen C4 Aircross	categoria=SUV	marca=Citroen	lotacao=5	bagagem=3	preco=3256	
+id=FDK	modelo=Ford Kuga	categoria=SUV	marca=Ford	lotacao=5	bagagem=3	preco=3456	
+id=KIAS	modelo=Kia Stonic	categoria=SUV	marca=Kia	lotacao=5	bagagem=3	preco=3489	
+id=HYK	modelo=Hyundai Kauai	categoria=SUV	marca=Hyundai	lotacao=5	bagagem=3	preco=3645	
+id=HYB	modelo=Hyundai Bayon	categoria=SUV	marca=Hyundai	lotacao=5	bagagem=2	preco=2642	
+id=MZC30	modelo=Mazda Cx-30	categoria=SUV	marca=Mazda	lotacao=5	bagagem=3	preco=3360	
+id=NSSJ	modelo=Nissan Juke	categoria=SUV	marca=Nissan	lotacao=5	bagagem=2	preco=2626	
+id=NSSQ	modelo=Nissan Qashqai	categoria=SUV	marca=Nissan	lotacao=5	bagagem=3	preco=3460	
+id=PG20	modelo=Peugeot 2008	categoria=SUV	marca=Peugeot	lotacao=5	bagagem=2	preco=2685	
+id=PG30	modelo=Peugeot 3008	categoria=SUV	marca=Peugeot	lotacao=5	bagagem=3	preco=3685	
+id=STAR	modelo=Seat Arona	categoria=SUV	marca=Seat	lotacao=5	bagagem=2	preco=2433	
+id=STAT	modelo=Seat Ateca	categoria=SUV	marca=Seat	lotacao=5	bagagem=3	preco=3386	
+id=SKKI	modelo=Skoda Kamiq	categoria=SUV	marca=Skoda	lotacao=5	bagagem=3	preco=2666	
+id=SKKO	modelo=Skoda Karoq	categoria=SUV	marca=Skoda	lotacao=5	bagagem=4	preco=3560	
+id=OPMK	modelo=Opel Mokka	categoria=SUV	marca=Opel	lotacao=5	bagagem=3	preco=3333	
+id=OPGL	modelo=Opel Grandland	categoria=SUV	marca=Opel	lotacao=5	bagagem=4	preco=4222	
+id=VV3	modelo=Volvo XC30	categoria=SUV	marca=Volvo	lotacao=5	bagagem=3	preco=3750	
+id=VV4	modelo=Volvo XC40	categoria=SUV	marca=Volvo	lotacao=5	bagagem=3	preco=4598	
+id=ALFAS	modelo=Alfa Romeo Stelvio	categoria=SUV	marca=Alfa Romeo	lotacao=5	bagagem=3	preco=4510	
+id=FTSC	modelo=Fiat E-Scudo	categoria=MONOVOLUME	marca=Fiat	lotacao=9	bagagem=6	preco=8560	
+id=OPZ	modelo=Opel Zafira	categoria=MONOVOLUME	marca=Opel	lotacao=9	bagagem=6	preco=8322	
+id=CTJ	modelo=Citroen Jumpy	categoria=MONOVOLUME	marca=Citroen	lotacao=9	bagagem=5	preco=8023	
+id=FDT	modelo=Ford Tourneo Custom	categoria=MONOVOLUME	marca=Ford	lotacao=9	bagagem=5	preco=8235	
+id=RNE	modelo=Renault Espace	categoria=MONOVOLUME	marca=Renault	lotacao=9	bagagem=5	preco=8760	
+id=MERV	modelo=Mercedes Vito	categoria=MONOVOLUME	marca=Mercedes	lotacao=9	bagagem=5	preco=9023	
+id=PGRI	modelo=Peugeot Rifter	categoria=MONOVOLUME	marca=Peugeot	lotacao=9	bagagem=5	preco=8156	

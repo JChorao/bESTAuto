@@ -1,0 +1,29 @@
+id=EVR	nome=Évora	horario=semanal[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	
+id=VIS	nome=Viseu	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	extensao=total	preco_extensao=variavel	
+id=PTL	nome=Portalegre	horario=semanal[08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00]	extensao=horas[2]	preco_extensao=taxa[2000]	
+id=CBR	nome=Coimbra	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	
+id=FRAER	nome=Faro - Aeroporto	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=total	preco_extensao=taxa[3000]	
+id=PTDAER	nome=Ponta Delgada - aeroporto	horario=total	
+id=CTB	nome=Castelo Branco	horario=total	
+id=PRTAER	nome=Porto - aeroporto	horario=total	
+id=BRC	nome=Bragança	horario=semanal[08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00]	
+id=LXAER	nome=Lisboa - aeroporto	horario=total	
+id=BRG	nome=Braga	horario=total	
+id=VR	nome=Vila Real	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	extensao=total	preco_extensao=taxa[4000]	
+id=AVR	nome=Aveiro	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	extensao=total	preco_extensao=taxa[2000]	
+id=STB	nome=Setúbal	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	extensao=horas[3]	preco_extensao=variavel	central=LXAER	
+id=PRTCTR	nome=Porto - centro	horario=alargado[08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00,08:00-20:00]	central=PRTAER	
+id=PTDCTR	nome=Ponta Delgada - centro	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	central=PTDAER	
+id=BJ	nome=Beja	horario=semanal[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	central=EVR	
+id=PRTTC	nome=Porto - terminal cruzeiros	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=total	preco_extensao=taxa[4000]	central=PRTAER	
+id=STR	nome=Santarém	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	extensao=horas[3]	preco_extensao=variavel	central=LXAER	
+id=ABR	nome=Abrantes	horario=semanal[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=horas[2]	preco_extensao=taxa[2000]	central=CTB	
+id=LXTC	nome=Lisboa - terminal cruzeiros	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=total	preco_extensao=taxa[4000]	central=LXAER	
+id=LXCTR	nome=Lisboa - centro	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=total	preco_extensao=taxa[4000]	central=LXAER	
+id=VIC	nome=Viana Do Castelo	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,10:00-17:00,10:00-17:00]	extensao=horas[4]	preco_extensao=taxa[2500]	central=BRG	
+id=LEI	nome=Leiria	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,12:00-18:00]	extensao=horas[4]	preco_extensao=variavel	central=AVR	
+id=FRCTR	nome=Faro - centro	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,12:00-18:00]	extensao=total	preco_extensao=taxa[3500]	central=FRAER	
+id=ALC	nome=Alcains	horario=semanal[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=horas[2]	preco_extensao=taxa[2000]	central=CTB	
+id=CVL	nome=Covilhã	horario=alargado[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,12:00-18:00]	extensao=total	preco_extensao=variavel	central=CTB	
+id=GRD	nome=Guarda	horario=semanal[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=horas[4]	preco_extensao=taxa[3000]	central=VIS	
+id=FND	nome=Fundão	horario=semanal[09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00,09:00-19:00]	extensao=horas[3]	preco_extensao=taxa[2000]	central=CTB	
