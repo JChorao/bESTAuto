@@ -2,11 +2,9 @@ package app;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -24,6 +22,7 @@ import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import java.util.Collections;
 
 import static javax.swing.SpringLayout.*;
 
@@ -46,27 +45,27 @@ public class JanelaEstacoes extends JFrame {
 	 * Cria uma janela para apresentar informações sobre uma estação
 	 */
 	public JanelaEstacoes(BESTAuto a) {
-        setTitle("bEST Auto - A melhor experiência em aluguer de automóveis");
+		setTitle("bEST Auto - A melhor experiência em aluguer de automóveis");
 
-        // ler a lista de nomes das estações (ordenadas alfabeticamente)
-        Vector<String> nomes = new Vector<>();
-        try {
-            List<LeitorFicheiros.Bloco> blocos = LeitorFicheiros.lerFicheiro("dados/estacoes.txt");
-            for (LeitorFicheiros.Bloco b : blocos) {
-                String nome = b.getValor("nome");
-                if (nome != null)
-                    nomes.add(nome);
-            }
-            Collections.sort(nomes, String::compareToIgnoreCase);
-        } catch (IOException e) {
-            // fallback para nomes de exemplo se houver problema a ler o ficheiro
-            nomes.add("Alcains");
-            nomes.add("Castelo Branco");
-        }
+		// TODO colocar a lista de nomes das estações (ordenadas alfabeticamente) no
+		// vetor nomes (o que está é apenas de exemplo)
+		
+		Vector<String> nomes = new Vector<>();
+		
+		try{
+			for(Estacao e : a.getEstacoes()){ 
+				nomes.add(e.getNome());
+			}
 
-        setupJanela(nomes);
-    }
-	
+		}catch(Exception e){
+			nomes.add("Alcains");
+        	nomes.add("Castelo Branco");
+		}
+
+		Collections.sort(nomes);
+
+		setupJanela(nomes);
+	}
 
 	/**
 	 * Método chamado quando o utilizador escolhe uma nova estação

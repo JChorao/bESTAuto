@@ -56,6 +56,9 @@ public class Main {
 
 			for (LeitorFicheiros.Bloco b : blocos) {
 				// TODO completar este método
+				
+				Estacao e = new Estacao(b.getValor("nome"),processarHorario(b), processarCentral(best, b), null);
+				
 				String id = b.getValor("id");
 				String nome = b.getValor("nome");
 				HorarioSemanal h = processarHorario(b);
@@ -63,6 +66,9 @@ public class Main {
 				processarExtensao(b);
 				processarPagamentoExtensao(b);
 				// TODO armazenar a informação lida no sistema
+
+				best.adicionarEstacao(b.getValor("id"), e);
+				
 			}
 
 		} catch (IOException e) {
@@ -119,14 +125,14 @@ public class Main {
 	 * 
 	 * @param b o bloco com a informação a processar
 	 */
-	private static void processarCentral(BESTAuto best, Bloco b) {
+	private static String processarCentral(BESTAuto best, Bloco b) {
 		// TODO completar este método (os return podem ter de ser eliminados)
 		if (b.getValor("central") != null) {
 			String central = b.getValor("central");
-			return;
+			return central;
 		} else {
 			// não tem central
-			return;
+			return null;
 		}
 	}
 
