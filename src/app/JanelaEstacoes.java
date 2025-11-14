@@ -134,14 +134,18 @@ public class JanelaEstacoes extends JFrame {
 	private void escolherAutomovel(String matricula) {
 		indisponibilidadesModel.setRowCount(0); // limpar a tabela
 
-		// TODO para cada indiponibilidade da viatura com a matricula selecionada chamar
-		// o método adicionarLinha para adicionar uma linha à tabela de
-		// indisponibilidades (o que está são apenas exemplos)
-		adicionarLinha(LocalDateTime.now().plusDays(1).withHour(17).withMinute(0), LocalDateTime.now().plusDays(2),
-				"Deslocar para ALC");
-		adicionarLinha(LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(4), "Aluguer XX1234XX");
-		adicionarLinha(LocalDateTime.now().plusDays(4), LocalDateTime.now().plusDays(5).withHour(9).withMinute(30),
-				"Retornar a CTB");
+        // Obter a viatura real a partir da matrícula
+        Viatura v = bestAuto.getViatura(matricula);
+        if (v == null) return;
+
+		// Iterar pelas indisponibilidades REAIS da viatura
+        for (Viatura.Indisponibilidade ind : v.getIndisponibilidades()) {
+            adicionarLinha(
+                ind.intervalo.getInicio(), 
+                ind.intervalo.getFim(), 
+                ind.motivo
+            );
+        }
 	}
 
 	/**
