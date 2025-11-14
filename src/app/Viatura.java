@@ -15,4 +15,13 @@ public class Viatura {
     public String toString() {
         return "Viatura [modelo=" + modelo.getModelo() + ", estacao=" + estacao.getNome() + "]";
     }
+
+    public Modelo getModelo() {
+        return modelo;
+    }
+
+    public Estacao getEstacao() {
+        return estacao;
+    }
+
 }

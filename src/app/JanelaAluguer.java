@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableModel;
 import java.util.Collections;
+import java.util.HashSet;
 
 import aluguer.BESTAuto;
 import aluguer.Categoria;
@@ -74,6 +75,8 @@ public class JanelaAluguer extends JFrame {
 
 	// A companhia a ser usada
 	private BESTAuto bestAuto;
+    private Estacao estacaoSelecionada; // Guarda a estação escolhida
+    private Vector<Estacao> estacoesOrdenadas; // Para manter a lista de estações sincronizada
 
 	/**
 	 * Cria uma janela de aluguer
@@ -82,17 +85,25 @@ public class JanelaAluguer extends JFrame {
 		bestAuto = a;
 		setTitle("bEST Auto - A melhor experiência em aluguer de automóveis");
 
-		// TODO colocar a lista de nomes das estações (ordenadas alfabeticamente) no
-		// vetor nomes (o que está é apenas de exemplo)
-		Vector<String> nomes = new Vector<>();
-		
-		for(Estacao e : a.getEstacoes()){ 
-				nomes.add(e.getNome());
-		}
+        // 1. Buscar estações e ordená-las por nome
+        estacoesOrdenadas = a.getEstacoes(); // getEstacoes() retorna um Vector<Estacao>
+        // Ordena o Vector de Estações pelo nome
+        Collections.sort(estacoesOrdenadas, (e1, e2) -> e1.getNome().compareTo(e2.getNome()));
 
-		Collections.sort(nomes);
+		// 2. Criar o vetor de nomes a partir da lista ordenada
+		Vector<String> nomes = new Vector<>();
+		for(Estacao e : estacoesOrdenadas){ 
+				nomes.add(e.getNome());
+		}  
 		
 		setupJanela(nomes);
+
+        // 3. Definir a estação inicial (índice 0)
+        if (!estacoesOrdenadas.isEmpty()) {
+            // Isto vai chamar o escolherEstacao(0) automaticamente
+            // porque o 'setupEscolhaEstacao' define o 'setSelectedIndex(0)'
+            escolherEstacao(0); 
+        }
 	}
 
 	/**
@@ -101,11 +112,16 @@ public class JanelaAluguer extends JFrame {
 	 * @param selecionadaIndex o índice da estação selecionada
 	 */
 	private void escolherEstacao(int selecionadaIndex) {
-		// TODO selecionar a estação adequada
+		// Apanha a estação correta da nossa lista ordenada
+        if (selecionadaIndex >= 0 && selecionadaIndex < estacoesOrdenadas.size()) {
+		    this.estacaoSelecionada = estacoesOrdenadas.get(selecionadaIndex);
+        } else {
+            this.estacaoSelecionada = null;
+        }
 
 		// limpar a pesquisa
 		limparPesquisa();
-	}
+	}	
 
 	/**
 	 * método chamado quando o utilizador pressiona o botão de apresentar horário
@@ -134,20 +150,82 @@ public class JanelaAluguer extends JFrame {
 		}
 		intervaloSel = IntervaloTempo.entre(inicio, fim);
 
-		// TODO fazer a pesquisa
+        // --- Início da Lógica de Pesquisa ---
 
-		// TODO para cada viatura da pesquisa criar um painel e
-		// associar a informação adequada. Cada painel terá um valor (à escolha do
-		// grupo) que o associará a um resultado. Esse valor será depois usado
-		// para identificar qual a viatura alugada se o cliente escolher esse painel
-		PainelAluguer pa1 = new PainelAluguer("Koenigsegg Gemera", 4, 1, 120000, null);
-		alugueres.add(pa1);
-		PainelAluguer pa2 = new PainelAluguer("Koenigsegg Jesko Attack", 2, 1, 100000, null);
-		alugueres.add(pa2);
+        // 1. Obter os dados da interface
+        if (this.estacaoSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Nenhuma estação selecionada.");
+            return;
+        }
+        Categoria categoriaSel = (Categoria) categCb.getSelectedItem();
+        Estacao central = this.estacaoSelecionada.getCentral(); // Usar o getter
 
-		// TODO sem resultados (alterar o teste, claro!)? Apresentar essa informação
-		if (Math.abs(2) == -1)
+        // Um HashSet garante que cada *modelo* é adicionado apenas uma vez [cite: 64, 66]
+        HashSet<Modelo> modelosEncontrados = new HashSet<>();
+
+        // 2. Procurar na estação local
+        for (Viatura v : bestAuto.getViaturas()) {
+            // Se a viatura pertence à estação selecionada
+            if (v.getEstacao().equals(this.estacaoSelecionada)) {
+                Modelo m = v.getModelo();
+                // Se a categoria corresponde
+                if (m.getCategoria().equals(categoriaSel)) {
+                    
+                    // TODO: Aqui deve verificar a disponibilidade da viatura 'v'
+                    // usando o 'intervaloSel', conforme pág 2 do PDF[cite: 57, 63].
+                    // Ex: if (bestAuto.isViaturaDisponivel(v, intervaloSel)) {
+                        modelosEncontrados.add(m);
+                    // }
+                }
+            }
+        }
+
+        // 3. Procurar na estação central (se existir) [cite: 65]
+        if (central != null) {
+            for (Viatura v : bestAuto.getViaturas()) {
+                // Se a viatura pertence à estação central
+                if (v.getEstacao().equals(central)) {
+                    Modelo m = v.getModelo();
+                    
+                    // Se a categoria corresponde E o modelo ainda não foi encontrado [cite: 66]
+                    if (m.getCategoria().equals(categoriaSel) && !modelosEncontrados.contains(m)) {
+                        
+                        // TODO: Aqui também deve verificar a disponibilidade
+                        // Ex: if (bestAuto.isViaturaDisponivel(v, intervaloSel)) {
+                            modelosEncontrados.add(m);
+                        // }
+                    }
+                }
+            }
+        }
+
+        // 4. Apresentar os resultados
+        if (modelosEncontrados.isEmpty()) {
 			alugueres.add(new JLabel("-- SEM RESULTADOS --", JLabel.CENTER));
+        } else {
+            for (Modelo m : modelosEncontrados) {
+                
+                // TODO: Aqui deve calcular o preço total do aluguer[cite: 151, 156].
+                // O cálculo depende dos dias, extensão de horário, e se vem da central[cite: 52].
+                // De momento, vou usar o preço diário como placeholder.
+                long precoCalculado = m.getPreco(); // Usar o getter
+
+                // O 'valor' no PainelAluguer deve ser algo que identifique o aluguer.
+                // Passar o próprio objeto Modelo é uma boa opção.
+                PainelAluguer pa = new PainelAluguer(
+                    m.getModelo(),    // Nome do modelo
+                    m.getLotacao(),   // Usar o getter
+                    m.getBagagem(),   // Usar o getter
+                    precoCalculado,   // Usar o preço (aqui deve ser o preço TOTAL calculado)
+                    m                 // Passar o Modelo como 'valor'
+                );
+		        alugueres.add(pa);
+            }
+        }
+        
+        // Revalidar o painel para mostrar os novos resultados
+        alugueres.revalidate();
+        alugueres.repaint();
 	}
 
 	/**

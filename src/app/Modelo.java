@@ -29,5 +29,21 @@ public class Modelo {
         return "Modelo [modelo=" + modelo + ", categoria=" + categoria + ", marca=" + marca + ", lotacao=" + lotacao
                 + ", bagagem=" + bagagem + ", preco=" + preco + "]";
     }
+    
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public int getLotacao() {
+        return lotacao;
+    }
+
+    public int getBagagem() {
+        return bagagem;
+    }
+
+    public long getPreco() {
+        return preco;
+    }
 
 }
