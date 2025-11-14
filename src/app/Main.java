@@ -173,6 +173,7 @@ public class Main {
 		try {
 			List<LeitorFicheiros.Bloco> blocos = LeitorFicheiros.lerFicheiro(file);
 			for (LeitorFicheiros.Bloco b : blocos) {
+
 				String id = b.getValor("id");
 				String modelo = b.getValor("modelo");
 				Categoria categoria = Categoria.valueOf(b.getValor("categoria"));
@@ -181,7 +182,10 @@ public class Main {
 				int bagagem = Integer.parseInt(b.getValor("bagagem"));
 				long preco = Integer.parseInt(b.getValor("preco"));
 
+				Modelo m = new Modelo(modelo, categoria, marca, lotacao, bagagem, preco);
+
 				// TODO completar o método
+				best.adicionarModelo(id, m);
 
 			}
 		} catch (IOException e) {
@@ -206,6 +210,8 @@ public class Main {
 				String estacao = b.getValor("estacao");
 
 				// TODO completar o método
+				Viatura v = new Viatura(best.getModelo(modelo), best.estacoes.get(estacao));
+				best.adicionarViatura(matricula, v);
 
 			}
 		} catch (IOException e) {

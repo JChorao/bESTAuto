@@ -4,10 +4,10 @@ import pds.tempo.HorarioSemanal;
 
 public class Estacao {
 
-    public String nome;
-    public HorarioSemanal horario;
-    public String etensao;
-    public Estacao central;
+    private String nome;
+    private HorarioSemanal horario;
+    private String etensao;
+    private Estacao central;
     
     public Estacao(String nome, HorarioSemanal processarHorario , Object o, Object o1) {
         this.nome = nome;
