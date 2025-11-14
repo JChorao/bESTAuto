@@ -29,4 +29,13 @@ public class Viatura {
     public String toString() {
         return "Viatura [matricula=" + matricula + ", modelo=" + modelo.getModelo() + ", estacao=" + estacao.getNome() + "]";
     }
+
+    public Modelo getModelo() {
+        return modelo;
+    }
+
+    public Estacao getEstacao() {
+        return estacao;
+    }
+
 }

@@ -25,4 +25,8 @@ public class Estacao {
     public String toString() {
         return "Estacao [nome=" + nome + ", horario=" + horario + ", etensao=" + etensao + ", central=" + central + "]";
     }
+
+    public Estacao getCentral() {
+        return central;
+    }
 }
