@@ -59,10 +59,6 @@ public class Main {
 				
 				Estacao e = new Estacao(b.getValor("nome"),processarHorario(b), processarCentral(best, b), null);
 				
-				String id = b.getValor("id");
-				String nome = b.getValor("nome");
-				HorarioSemanal h = processarHorario(b);
-				processarCentral(best, b);
 				processarExtensao(b);
 				processarPagamentoExtensao(b);
 				// TODO armazenar a informação lida no sistema
@@ -210,8 +206,8 @@ public class Main {
 				String estacao = b.getValor("estacao");
 
 				// TODO completar o método
-				Viatura v = new Viatura(best.getModelo(modelo), best.estacoes.get(estacao));
-				best.adicionarViatura(matricula, v);
+				Viatura v = new Viatura(matricula ,best.getModelo(modelo), best.estacoes.get(estacao));
+				best.adicionarViatura(v);
 
 			}
 		} catch (IOException e) {

@@ -140,9 +140,9 @@ public class JanelaAluguer extends JFrame {
 		// associar a informação adequada. Cada painel terá um valor (à escolha do
 		// grupo) que o associará a um resultado. Esse valor será depois usado
 		// para identificar qual a viatura alugada se o cliente escolher esse painel
-		PainelAluguer pa1 = new PainelAluguer("Koenigsegg Gemera", 4, 1, 120000, null);
+		PainelAluguer pa1 = new PainelAluguer("Koenigsegg Gemera - Aluger", 4, 1, 120000, null);
 		alugueres.add(pa1);
-		PainelAluguer pa2 = new PainelAluguer("Koenigsegg Jesko Attack", 2, 1, 100000, null);
+		PainelAluguer pa2 = new PainelAluguer("Koenigsegg Jesko Attack - Aluger", 2, 1, 100000, null);
 		alugueres.add(pa2);
 
 		// TODO sem resultados (alterar o teste, claro!)? Apresentar essa informação

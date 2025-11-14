@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -41,10 +42,13 @@ public class JanelaEstacoes extends JFrame {
 	DefaultListModel<String> matriculasModel = new DefaultListModel<>();
 	DefaultTableModel indisponibilidadesModel;
 
+	private BESTAuto bestAuto;
+
 	/**
 	 * Cria uma janela para apresentar informações sobre uma estação
 	 */
 	public JanelaEstacoes(BESTAuto a) {
+		bestAuto = a;
 		setTitle("bEST Auto - A melhor experiência em aluguer de automóveis");
 
 		// TODO colocar a lista de nomes das estações (ordenadas alfabeticamente) no
@@ -97,7 +101,11 @@ public class JanelaEstacoes extends JFrame {
 	private void escolherCategoria(Categoria c) {
 		// TODO colocar na lista o nome dos modelos que a estação selecionada tem nesta
 		// categoria (Neste momento é apenas um exemplo)
-		List<String> modelos = List.of("Koenigsegg Gemera", "Koenigsegg Jesko Attack");
+		List<String> modelos = bestAuto.getModelos().stream()
+				.filter(m -> m.getCategoria() == c)
+				.map( m -> m.getModelo())
+				.sorted()
+				.collect(Collectors.toList());
 
 		// limpar as restantes listas
 		modelosModel.clear();
@@ -116,7 +124,9 @@ public class JanelaEstacoes extends JFrame {
 	private void escolherModelo(String modelo) {
 		// TODO colocar na lista todas as matrículas das viaturas do modelo selecionado,
 		// o que está é apenas um exemplo
-		List<String> matriculas = List.of("ZZ-98-ZZ", "ZZ-99-ZZ");
+		List<String> matriculas = bestAuto.getViaturasModelo(modelo).stream().map(Viatura::getMatricula).collect(
+			Collectors.toUnmodifiableList()
+		);
 
 		// limpar as restantes listas
 		matriculasModel.clear();

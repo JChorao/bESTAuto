@@ -24,6 +24,11 @@ public class Modelo {
     public String getModelo() {
         return modelo;
     }
+
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
     @Override
     public String toString() {
         return "Modelo [modelo=" + modelo + ", categoria=" + categoria + ", marca=" + marca + ", lotacao=" + lotacao

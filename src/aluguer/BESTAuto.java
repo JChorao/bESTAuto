@@ -1,6 +1,8 @@
 package aluguer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 import app.Estacao;
@@ -14,7 +16,7 @@ public class BESTAuto {
 
     public HashMap<String, Estacao> estacoes;
     public HashMap<String, Modelo> modelos;
-    public HashMap<String, Viatura> viaturas;
+    public List<Viatura> viaturas;
 
 
     public void adicionarEstacao(String id,Estacao e) {
@@ -62,20 +64,36 @@ public class BESTAuto {
         return modelos.get(id);
     }
 
-    public void adicionarViatura(String id, Viatura v) {
+    public void adicionarViatura(Viatura v) {
         if (viaturas == null) {
-            viaturas = new HashMap<>();
+            viaturas = new ArrayList<>();
         }
-        viaturas.put(id, v);
-        System.out.println("Viatura adicionada: " + id + ", " + v.toString());
+
+        viaturas.add(v);
+        System.out.println("Viatura adicionada: " + v.getMatricula() + ", " + v.toString());
     }
 
     public Vector<Viatura> getViaturas() {
-        Vector<Viatura> v = new Vector<>(viaturas.values());
+        Vector<Viatura> v = new Vector<>(viaturas);
         return v;
     }
 
     public Viatura getViatura(String matricula) {
-        return viaturas.get(matricula);
+        for (Viatura v : viaturas) {
+            if (v.getMatricula().equals(matricula)) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    public Vector<Viatura> getViaturasModelo(String modelo) {
+        Vector<Viatura> resultado = new Vector<>();
+        for (Viatura v : viaturas) {
+            if (v.getModelo().getModelo().equals(modelo)) {
+                resultado.add(v);
+            }
+        }
+        return resultado;
     }
 }
