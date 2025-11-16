@@ -29,4 +29,8 @@ public class Estacao {
     public Estacao getCentral() {
         return central;
     }
+
+    public HorarioSemanal getHorario() {
+        return horario;
+    }
 }

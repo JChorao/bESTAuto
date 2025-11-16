@@ -141,8 +141,8 @@ public class JanelaAluguer extends JFrame {
     private void apresentarHorario() {
         // TODO ir buscar o horário da estação atual, em vez de usar um vazio
         // Deverá ser algo como:
-        // HorarioSemanal hs = estacaoSelecionada.getHorario();
-        HorarioSemanal hs = HorarioSemanal.sempreFechado(); // Placeholder
+        HorarioSemanal hs = estacaoSelecionada.getHorario();
+        //HorarioSemanal hs = HorarioSemanal.sempreFechado(); // Placeholder
 
         apresentarHorario(hs);
     }
@@ -365,6 +365,10 @@ public class JanelaAluguer extends JFrame {
         painel.setBorder(BorderFactory.createTitledBorder("Escolher data de recolha e entrega"));
         temposPn.add(new JLabel("De:"));
         dataInicio = LocalDate.now();
+        if (indiceHora == horas.length) {
+            indiceHora = 0;
+            dataInicio = dataInicio.plusDays(1);
+        }
         deBt = new JButton(dataInicio.format(dataFormatter));
         deBt.addActionListener(e -> escolherInicio());
         temposPn.add(deBt);

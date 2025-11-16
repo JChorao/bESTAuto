@@ -104,6 +104,7 @@ public class Main {
 	private static void processarExtensao(Bloco b) {
 		// TODO completar este método (os return podem ter de ser eliminados)
 		String tipoExtensao = b.getValor("extensao");
+		System.out.println(tipoExtensao);
 		// se não tem esta chave é porque não tem extensão
 		if (tipoExtensao == null) {
 			return;

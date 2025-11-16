@@ -1,8 +1,6 @@
 package aluguer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Vector;
 
 import app.Estacao;
@@ -16,7 +14,7 @@ public class BESTAuto {
 
     public HashMap<String, Estacao> estacoes;
     public HashMap<String, Modelo> modelos;
-    public List<Viatura> viaturas;
+    public HashMap<String, Viatura> viaturas;
 
 
     public void adicionarEstacao(String id,Estacao e) {
@@ -66,20 +64,18 @@ public class BESTAuto {
 
     public void adicionarViatura(Viatura v) {
         if (viaturas == null) {
-            viaturas = new ArrayList<>();
+            viaturas = new HashMap<>();
         }
-
-        viaturas.add(v);
-        System.out.println("Viatura adicionada: " + v.getMatricula() + ", " + v.toString());
+        viaturas.put(v.getMatricula(), v);
     }
 
     public Vector<Viatura> getViaturas() {
-        Vector<Viatura> v = new Vector<>(viaturas);
+        Vector<Viatura> v = new Vector<>(viaturas.values());
         return v;
     }
 
     public Viatura getViatura(String matricula) {
-        for (Viatura v : viaturas) {
+        for (Viatura v : viaturas.values()) {
             if (v.getMatricula().equals(matricula)) {
                 return v;
             }
@@ -89,7 +85,7 @@ public class BESTAuto {
 
     public Vector<Viatura> getViaturasModelo(String modelo) {
         Vector<Viatura> resultado = new Vector<>();
-        for (Viatura v : viaturas) {
+        for (Viatura v : viaturas.values()) {
             if (v.getModelo().getModelo().equals(modelo)) {
                 resultado.add(v);
             }
