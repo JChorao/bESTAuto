@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -24,6 +23,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.util.Collections;
+import java.util.Comparator;
 
 import static javax.swing.SpringLayout.*;
 
@@ -44,6 +44,10 @@ public class JanelaEstacoes extends JFrame {
 
 	private BESTAuto bestAuto;
 
+    // NOVOS CAMPOS PARA ARMAZENAR O ESTADO
+    private Estacao estacaoSelecionada;
+    private Vector<Estacao> estacoesOrdenadas; 
+
 	/**
 	 * Cria uma janela para apresentar informações sobre uma estação
 	 */
@@ -51,43 +55,64 @@ public class JanelaEstacoes extends JFrame {
 		bestAuto = a;
 		setTitle("bEST Auto - A melhor experiência em aluguer de automóveis");
 
-		// TODO colocar a lista de nomes das estações (ordenadas alfabeticamente) no
-		// vetor nomes (o que está é apenas de exemplo)
-		
+		// 1. Buscar estações e ordená-las por nome
 		Vector<String> nomes = new Vector<>();
 		
 		try{
-			for(Estacao e : a.getEstacoes()){ 
+            // Usar Comparator.comparing(Estacao::getNome) se o Java target for 8+
+            estacoesOrdenadas = a.getEstacoes();
+			Collections.sort(estacoesOrdenadas, Comparator.comparing(Estacao::getNome));
+
+			for(Estacao e : estacoesOrdenadas){ 
 				nomes.add(e.getNome());
 			}
 
 		}catch(Exception e){
+			// Fallback original
 			nomes.add("Alcains");
         	nomes.add("Castelo Branco");
+			Collections.sort(nomes);
 		}
 
-		Collections.sort(nomes);
-
 		setupJanela(nomes);
+        
+        // 2. Definir a estação inicial (índice 0) e popular as listas
+		if (estacoesOrdenadas != null && !estacoesOrdenadas.isEmpty()) {
+			escolherEstacao(0); 
+		}
 	}
 
 	/**
 	 * Método chamado quando o utilizador escolhe uma nova estação
-	 * 
-	 * @param selecionadaIndex o índice da estação selecionada
+	 * * @param selecionadaIndex o índice da estação selecionada
 	 */
 	private void escolherEstacao(int selecionadaIndex) {
-		// TODO escolher a estação e colocar na lista as categorias suportas por esta
-		// estação (neste momento está a colocar todas)
+		// 1. Obter a estação selecionada
+        if (estacoesOrdenadas == null || selecionadaIndex < 0 || selecionadaIndex >= estacoesOrdenadas.size()) {
+			estacaoSelecionada = null;
+		} else {
+            this.estacaoSelecionada = estacoesOrdenadas.get(selecionadaIndex);
+        }
 
-		Collection<Categoria> lista = List.of(Categoria.values());
-
-		// limpar as restantes listas todas
+        // Limpar todas as listas
 		categoriasModel.clear();
 		modelosModel.clear();
 		matriculasModel.clear();
 		if (indisponibilidadesModel != null)
 			indisponibilidadesModel.setRowCount(0);
+
+        // Se nenhuma estação foi selecionada ou se as viaturas não foram carregadas, sair.
+        if (this.estacaoSelecionada == null || bestAuto.getViaturas() == null) {
+            return;
+        }
+
+		// 2. Encontrar as Categorias de Viatura que esta estação *efetivamente* tem
+		Collection<Categoria> lista = bestAuto.getViaturas().stream()
+                // FILTRO: A viatura pertence à estação selecionada?
+				.filter(v -> v.getEstacao().equals(this.estacaoSelecionada))
+				.map(v -> v.getModelo().getCategoria())
+				// Coletar categorias únicas
+				.collect(Collectors.toSet()); 
 
 		// adicionar as novas categorias à lista
 		categoriasModel.addAll(lista);
@@ -95,16 +120,28 @@ public class JanelaEstacoes extends JFrame {
 
 	/**
 	 * Método chamado quando o utilizador escolhe uma nova categoria
-	 * 
-	 * @param c a categoria escolhida
+	 * * @param c a categoria escolhida
 	 */
 	private void escolherCategoria(Categoria c) {
-		// TODO colocar na lista o nome dos modelos que a estação selecionada tem nesta
-		// categoria (Neste momento é apenas um exemplo)
-		List<String> modelos = bestAuto.getModelos().stream()
-				.filter(m -> m.getCategoria() == c)
-				.map( m -> m.getModelo())
-				.sorted()
+        // Garantir que a estação está selecionada
+        if (this.estacaoSelecionada == null || c == null) {
+            modelosModel.clear();
+            matriculasModel.clear();
+            indisponibilidadesModel.setRowCount(0);
+            return;
+        }
+
+		// 1. Filtrar modelos que são da Categoria 'c' E que têm viaturas na 'estacaoSelecionada'.
+		List<String> modelos = bestAuto.getViaturas().stream()
+                // FILTRO: A viatura pertence à estação selecionada?
+                .filter(v -> v.getEstacao().equals(this.estacaoSelecionada)) 
+                // FILTRO: O modelo da viatura é da categoria selecionada?
+				.filter(v -> v.getModelo().getCategoria() == c)
+                // Mapear para o nome do modelo (String)
+				.map(v -> v.getModelo().getModelo()) 
+                // Coletar nomes distintos e ordenar
+				.collect(Collectors.toSet()).stream()
+                .sorted()
 				.collect(Collectors.toList());
 
 		// limpar as restantes listas
@@ -118,15 +155,27 @@ public class JanelaEstacoes extends JFrame {
 
 	/**
 	 * Método chamado quando o utilizador escolhe um novo modelo
-	 * 
-	 * @param modelo nome do modelo selecionado
+	 * * @param modelo nome do modelo selecionado
 	 */
 	private void escolherModelo(String modelo) {
-		// TODO colocar na lista todas as matrículas das viaturas do modelo selecionado,
-		// o que está é apenas um exemplo
-		List<String> matriculas = bestAuto.getViaturasModelo(modelo).stream().map(Viatura::getMatricula).collect(
-			Collectors.toUnmodifiableList()
-		);
+        // Garantir que a estação está selecionada
+        if (this.estacaoSelecionada == null || modelo == null) {
+            matriculasModel.clear();
+            indisponibilidadesModel.setRowCount(0);
+            return;
+        }
+
+		// 1. Filtrar as viaturas (matrículas) que pertencem ao 'modelo' E estão
+		// na 'estacaoSelecionada'.
+		List<String> matriculas = bestAuto.getViaturas().stream()
+                // FILTRO: A viatura pertence à estação selecionada?
+                .filter(v -> v.getEstacao().equals(this.estacaoSelecionada))
+                // FILTRO: O modelo da viatura é o selecionado?
+				.filter(v -> v.getModelo().getModelo().equals(modelo))
+                // Mapear para a matrícula
+                .map(Viatura::getMatricula)
+                // Coletar para uma lista
+				.collect(Collectors.toList());
 
 		// limpar as restantes listas
 		matriculasModel.clear();
@@ -134,30 +183,48 @@ public class JanelaEstacoes extends JFrame {
 
 		// adicionar as matrículas à lista
 		matriculasModel.addAll(matriculas);
+        
+        // Se houver matrículas, seleciona a primeira (para popular a tabela de indisponibilidades)
+        if (!matriculas.isEmpty()) {
+            escolherAutomovel(matriculas.get(0));
+        }
 	}
 
 	/**
 	 * Método chamado quando o utilizador escolhe uma nova matricula
-	 * 
-	 * @param matricula a matrícula escolhida
+	 * * @param matricula a matrícula escolhida
 	 */
 	private void escolherAutomovel(String matricula) {
 		indisponibilidadesModel.setRowCount(0); // limpar a tabela
+        
+        // 1. Encontrar a viatura
+        Viatura v = bestAuto.getViatura(matricula);
+        
+        if (v == null || v.getIndisponibilidades() == null) {
+            return; // Se não encontrar a viatura ou não tiver indisponibilidades, sair.
+        }
 
-		// TODO para cada indiponibilidade da viatura com a matricula selecionada chamar
-		// o método adicionarLinha para adicionar uma linha à tabela de
-		// indisponibilidades (o que está são apenas exemplos)
+		// 2. Para cada indisponibilidade da viatura, adicionar uma linha à tabela.
+        for (Viatura.Indisponibilidade ind : v.getIndisponibilidades()) {
+            LocalDateTime inicio = ind.intervalo.getInicio();
+            LocalDateTime fim = ind.intervalo.getFim();
+            String motivo = ind.motivo;
+            adicionarLinha(inicio, fim, motivo);
+        }
+        
+        // Código placeholder original removido:
+		/*
 		adicionarLinha(LocalDateTime.now().plusDays(1).withHour(17).withMinute(0), LocalDateTime.now().plusDays(2),
 				"Deslocar para ALC");
 		adicionarLinha(LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(4), "Aluguer XX1234XX");
 		adicionarLinha(LocalDateTime.now().plusDays(4), LocalDateTime.now().plusDays(5).withHour(9).withMinute(30),
 				"Retornar a CTB");
+        */
 	}
 
 	/**
 	 * Método que adiciona uma linha à tabela de indisponibilidades
-	 * 
-	 * @param inicio data de inicio da indisponibilidade
+	 * * @param inicio data de inicio da indisponibilidade
 	 * @param fim    data de fim da indisponibilidade
 	 * @param motivo motivo da indisponibilidade
 	 */
@@ -174,8 +241,7 @@ public class JanelaEstacoes extends JFrame {
 
 	/**
 	 * Confira esta janela
-	 * 
-	 * @param nomes a lista dos nomes das estações suportadas
+	 * * @param nomes a lista dos nomes das estações suportadas
 	 */
 	private void setupJanela(Vector<String> nomes) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -220,8 +286,7 @@ public class JanelaEstacoes extends JFrame {
 
 	/**
 	 * Configura o painel da listagem das estações
-	 * 
-	 * @param nomes os nomes das estações
+	 * * @param nomes os nomes das estações
 	 * @return o painel configurado
 	 */
 	private JPanel setupEscolhaEstacao(Vector<String> nomes) {
@@ -238,8 +303,7 @@ public class JanelaEstacoes extends JFrame {
 
 	/**
 	 * Configura o painel da escolha da categoria
-	 * 
-	 * @return o painel configurado
+	 * * @return o painel configurado
 	 */
 	private JPanel setupEscolhaCategorias() {
 		JPanel painel = new JPanel(new BorderLayout());
@@ -257,8 +321,7 @@ public class JanelaEstacoes extends JFrame {
 
 	/**
 	 * Configura o painel da escolha do modelo
-	 * 
-	 * @return o painel configurado
+	 * * @return o painel configurado
 	 */
 	private JPanel setupEscolhaGama() {
 		JPanel painel = new JPanel(new BorderLayout());
@@ -270,15 +333,13 @@ public class JanelaEstacoes extends JFrame {
 			if (listagem.getSelectedValue() != null)
 				escolherModelo(listagem.getSelectedValue());
 		});
-		// listagem.addActionListener(e -> escolherClasse(listagem.getSelectedIndex()));
 		painel.add(new JScrollPane(listagem), BorderLayout.CENTER);
 		return painel;
 	}
 
 	/**
 	 * Configura o painel da escolha da matricula
-	 * 
-	 * @return o painel configurado
+	 * * @return o painel configurado
 	 */
 	private JPanel setupEscolhaMatrícula() {
 		JPanel painel = new JPanel(new BorderLayout());
@@ -296,8 +357,7 @@ public class JanelaEstacoes extends JFrame {
 
 	/**
 	 * Configura o painel de apresentação das indisponibilidades
-	 * 
-	 * @return o painel configurado
+	 * * @return o painel configurado
 	 */
 	private JPanel setupAutoIndiponibilidades() {
 		JPanel painel = new JPanel(new BorderLayout());
