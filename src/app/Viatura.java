@@ -31,6 +31,12 @@ public class Viatura {
     // --- FIM DA ADIÇÃO ---
 
 
+    public Viatura(String matricula, Modelo modelo, Estacao estacao) {
+            this.matricula = matricula;
+            this.modelo = modelo;
+            this.estacao = estacao;
+        }
+
     public Viatura( Modelo modelo, Estacao estacao) {
         this.modelo = modelo;
         this.estacao = estacao;
@@ -53,15 +59,6 @@ public class Viatura {
         return "Viatura [matricula=" + matricula + ", modelo=" + modelo.getModelo() + ", estacao=" + estacao.getNome() + "]";
     }
 
-    // 3. GETTERS E MÉTODOS DE GESTÃO DE DISPONIBILIDADE
-    
-    public Modelo getModelo() {
-        return modelo;
-    }
-
-    public Estacao getEstacao() {
-        return estacao;
-    }
 
     /**
      * Retorna a lista de indisponibilidades (para a JanelaEstacoes).

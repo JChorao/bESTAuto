@@ -205,7 +205,7 @@ public class Main {
 				String modelo = b.getValor("modelo");
 				String estacao = b.getValor("estacao");
 
-				// TODO completar o método
+				// O construtor de 3 argumentos agora é válido
 				Viatura v = new Viatura(matricula ,best.getModelo(modelo), best.estacoes.get(estacao));
 				best.adicionarViatura(v);
 

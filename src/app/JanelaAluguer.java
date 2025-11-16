@@ -262,10 +262,14 @@ public class JanelaAluguer extends JFrame {
         String motivoAluguer = "Aluguer " + code;
         
         // Encontra a matrícula da viatura (necessário para o pop-up)
-        String matricula = bestAuto.viaturas.entrySet().stream()
-                .filter(entry -> entry.getValue().equals(viaturaAlugada))
-                .map(java.util.Map.Entry::getKey)
-                .findFirst().orElse("??-??-??");
+        String matricula = "??-??-??";
+        for (Viatura v : bestAuto.getViaturas()) {
+            if (v.equals(viaturaAlugada)) {
+                // assume Viatura tem método getMatricula()
+                matricula = v.getMatricula();
+                break;
+            }
+        }
 
         // 3. Obter datas da reserva (guardadas em 'intervaloSel' pelo 'pesquisar')
         LocalDateTime inicioReserva = intervaloSel.getInicio();

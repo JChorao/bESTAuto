@@ -35,9 +35,6 @@ public class Modelo {
                 + ", bagagem=" + bagagem + ", preco=" + preco + "]";
     }
     
-    public Categoria getCategoria() {
-        return categoria;
-    }
 
     public int getLotacao() {
         return lotacao;
