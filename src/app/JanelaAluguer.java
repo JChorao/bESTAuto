@@ -12,6 +12,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.time.DayOfWeek;
+import java.time.Duration; // Adicionado
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -139,10 +140,13 @@ public class JanelaAluguer extends JFrame {
      * método chamado quando o utilizador pressiona o botão de apresentar horário
      */
     private void apresentarHorario() {
-        // TODO ir buscar o horário da estação atual, em vez de usar um vazio
-        // Deverá ser algo como:
+        // CORREÇÃO: Usar o horário da estação selecionada
+        if (this.estacaoSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Por favor, selecione uma estação.");
+            return;
+        }
+        
         HorarioSemanal hs = estacaoSelecionada.getHorario();
-        //HorarioSemanal hs = HorarioSemanal.sempreFechado(); // Placeholder
 
         apresentarHorario(hs);
     }
@@ -153,82 +157,107 @@ public class JanelaAluguer extends JFrame {
     private void pesquisar() {
         limparPesquisa();
 
-        // --- Validação das datas (como antes) ---
+        // 1. Validação e Intervalo
         LocalDateTime inicio = LocalDateTime.of(dataInicio, horasInicio);
         LocalDateTime fim = LocalDateTime.of(dataFim, horasFim);
+        
+        // Validação estrita de "pelo menos um dia" (o que existia no código anterior)
         if (!inicio.isBefore(fim) || !dataInicio.isBefore(dataFim)) {
-            JOptionPane.showMessageDialog(null,
+             JOptionPane.showMessageDialog(null,
                     "A data de fim tem de ser superior em 1 dia, pelo menos, à data de início");
-            return;
+             return;
         }
+
         intervaloSel = IntervaloTempo.entre(inicio, fim);
 
-        // --- Início da Lógica de Pesquisa ---
+        // --- Início da Lógica de Pesquisa e Preço ---
         if (this.estacaoSelecionada == null) {
             JOptionPane.showMessageDialog(this, "Nenhuma estação selecionada.");
             return;
         }
+        
+        // 2. Verificação de Horário da Estação (Pág 5, Passos 2)
+        if (!estaEmHorarioNormalOuExtra(inicio, estacaoSelecionada)) {
+            JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de recolha.");
+            return;
+        }
+        if (!estaEmHorarioNormalOuExtra(fim, estacaoSelecionada)) {
+            JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de entrega.");
+            return;
+        }
+        
         Categoria categoriaSel = (Categoria) categCb.getSelectedItem();
         Estacao central = this.estacaoSelecionada.getCentral();
 
-        // 1. Inicializar os mapas de resultados
+        // 3. Inicializar os mapas de resultados
         viaturasParaAluguer = new HashMap<>();
         eDaCentral = new HashMap<>();
+        
+        // 4. Calcular dias base de aluguer (Blocos de 24h)
+        long diasBaseAluguer = calcularDiasAluguer(intervaloSel);
 
-        // 2. Procurar na estação local
+        // 5. Procurar na estação local
         for (Viatura v : bestAuto.getViaturas()) {
             Modelo m = v.getModelo();
-            // Se a viatura pertence à estação, é da categoria certa E ESTÁ DISPONÍVEL
             if (v.getEstacao().equals(this.estacaoSelecionada) &&
                 m.getCategoria().equals(categoriaSel) &&
-                v.isDisponivel(intervaloSel)) { // <-- VERIFICAÇÃO CHAVE
+                v.isDisponivel(intervaloSel)) {
                 
-                // Adiciona o primeiro carro encontrado desse modelo
                 if (!viaturasParaAluguer.containsKey(m)) {
                     viaturasParaAluguer.put(m, v);
-                    eDaCentral.put(m, false); // 'false' = é local
+                    eDaCentral.put(m, false); // Local
                 }
             }
         }
 
-        // 3. Procurar na estação central (se existir)
+        // 6. Procurar na estação central (se existir)
         if (central != null) {
             for (Viatura v : bestAuto.getViaturas()) {
                 Modelo m = v.getModelo();
-                // Se é da central, da categoria certa, ESTÁ DISPONÍVEL E AINDA NÃO FOI ENCONTRADO
                 if (v.getEstacao().equals(central) &&
                     m.getCategoria().equals(categoriaSel) &&
-                    v.isDisponivel(intervaloSel) && // <-- VERIFICAÇÃO CHAVE
-                    !viaturasParaAluguer.containsKey(m)) { // <-- Não adicionar se já temos local
+                    v.isDisponivel(intervaloSel) && 
+                    !viaturasParaAluguer.containsKey(m)) {
 
                     viaturasParaAluguer.put(m, v);
-                    eDaCentral.put(m, true); // 'true' = é da central
+                    eDaCentral.put(m, true); // Central
                 }
             }
         }
 
-        // 4. Apresentar os resultados
+        // 7. Apresentar os resultados e calcular o preço final
         if (viaturasParaAluguer.isEmpty()) {
             alugueres.add(new JLabel("-- SEM RESULTADOS --", JLabel.CENTER));
         } else {
-            // Itera sobre os Modelos encontrados
             for (Modelo m : viaturasParaAluguer.keySet()) {
                 
-                // TODO: Calcular o preço total do aluguer (pág 2 e 3 do PDF)
-                // De momento, vou usar o preço diário como placeholder.
-                long precoCalculado = m.getPreco();
-                // Se for da central, adicionar custo (2 dias extra)
+                long precoDiario = m.getPreco(); // Preço em cêntimos
+
+                // A) Calcular Preço Base (dias * precoDiario)
+                long precoTotal = diasBaseAluguer * precoDiario;
+
+                // B) Sobretaxa da Central
                 if (eDaCentral.get(m)) {
-                    // Este cálculo é mais complexo, por agora apenas adicionamos o valor
-                    // precoCalculado += m.getPreco() * 2;
+                    // Adicionar 2 dias extras (Pág 2, Passos 2)
+                    precoTotal += 2 * precoDiario;
                 }
+                
+                // C) Custo por Extensão de Horário
+                
+                // C.1) Custo da Recolha
+                long custoRecolha = calcularCustoExtensao(inicio, estacaoSelecionada, m);
+                precoTotal += custoRecolha;
+                
+                // C.2) Custo da Devolução
+                long custoDevolucao = calcularCustoExtensao(fim, estacaoSelecionada, m);
+                precoTotal += custoDevolucao;
 
                 PainelAluguer pa = new PainelAluguer(
                     m.getModelo(),
                     m.getLotacao(),
                     m.getBagagem(),
-                    precoCalculado, // Usar o preço (aqui deve ser o preço TOTAL calculado)
-                    m               // Passar o Modelo como 'valor' para o 'alugar'
+                    precoTotal, // O preço final em cêntimos (long)
+                    m               
                 );
                 alugueres.add(pa);
             }
@@ -261,15 +290,8 @@ public class JanelaAluguer extends JFrame {
         String code = GeradorCodigos.gerarCodigo(8); // "GeradorCodigos" de pds.util
         String motivoAluguer = "Aluguer " + code;
         
-        // Encontra a matrícula da viatura (necessário para o pop-up)
-        String matricula = "??-??-??";
-        for (Viatura v : bestAuto.getViaturas()) {
-            if (v.equals(viaturaAlugada)) {
-                // assume Viatura tem método getMatricula()
-                matricula = v.getMatricula();
-                break;
-            }
-        }
+        // CORREÇÃO DA MATRÍCULA: Obter a matrícula diretamente do objeto Viatura
+        String matricula = viaturaAlugada.getMatricula(); 
 
         // 3. Obter datas da reserva (guardadas em 'intervaloSel' pelo 'pesquisar')
         LocalDateTime inicioReserva = intervaloSel.getInicio();
@@ -306,8 +328,6 @@ public class JanelaAluguer extends JFrame {
                         + "</html>");
         
         // 7. Limpar e pesquisar de novo
-        // Isto cumpre o seu pedido: a pesquisa é re-executada
-        // e a viatura que acabou de ser alugada já não vai aparecer.
         limparPesquisa();
         pesquisar(); 
     }
@@ -365,10 +385,6 @@ public class JanelaAluguer extends JFrame {
         painel.setBorder(BorderFactory.createTitledBorder("Escolher data de recolha e entrega"));
         temposPn.add(new JLabel("De:"));
         dataInicio = LocalDate.now();
-        if (indiceHora == horas.length) {
-            indiceHora = 0;
-            dataInicio = dataInicio.plusDays(1);
-        }
         deBt = new JButton(dataInicio.format(dataFormatter));
         deBt.addActionListener(e -> escolherInicio());
         temposPn.add(deBt);
@@ -496,6 +512,141 @@ public class JanelaAluguer extends JFrame {
         alugueres.revalidate();
         alugueres.repaint();
     }
+    
+    // =========================================================================
+    // MÉTODOS DE CÁLCULO DE PREÇO
+    // =========================================================================
+
+    /**
+     * Calcula o número de dias (blocos de 24 horas) para efeitos de preço.
+     * Mesmo um bloco incompleto conta como um dia completo.
+     * @param intervalo O intervalo de tempo.
+     * @return O número de dias a pagar.
+     */
+    private long calcularDiasAluguer(IntervaloTempo intervalo) {
+        // 24h = 86400 segundos
+        final long segundosPorDia = 86400;
+        long duracaoSegundos = intervalo.duracao().getSeconds();
+        
+        // Número de dias completos
+        long dias = duracaoSegundos / segundosPorDia;
+        
+        // Se houver resto (mesmo que 1 segundo), conta como mais um dia.
+        if (duracaoSegundos % segundosPorDia > 0) {
+            dias++;
+        }
+        
+        return dias;
+    }
+    
+    /**
+     * Verifica se um momento (data/hora) está no horário normal OU no horário extra de uma estação.
+     * Necessário para a validação inicial do aluguer.
+     * @param time O momento a verificar.
+     * @param estacao A estação.
+     * @return true se o momento está coberto pelo horário normal ou extra, false se a estação está fechada.
+     */
+    private boolean estaEmHorarioNormalOuExtra(LocalDateTime time, Estacao estacao) {
+        HorarioSemanal hs = estacao.getHorario();
+        
+        // 1. Está no horário normal?
+        if (hs.estaDentroHorario(time)) {
+            return true;
+        }
+        
+        // 2. Não está, verifica se está no período de extensão
+        String tipoExtensao = estacao.getTipoExtensao();
+        
+        if (tipoExtensao == null) {
+            return false; // Não tem extensão
+        }
+        
+        if (tipoExtensao.equals("total")) {
+            return true; // Está sempre disponível se houver extensão total
+        }
+        
+        if (tipoExtensao.equals("horas")) {
+            int maxHoras = estacao.getMaxHorasExtensao();
+            
+            // Obter o HorarioDiario para o dia
+            HorarioDiario hd = hs.getHorarioDia(time.getDayOfWeek());
+            
+            // Se o dia estiver fechado (VAZIO), só aceita se for "total". Como não é, devolvemos false.
+            if (hd.eVazio()) {
+                return false;
+            }
+            
+            // É necessário saber as horas de início/fim do horário normal para o dia.
+            LocalTime hora = LocalTime.from(time);
+            LocalTime inicioNormal = hd.getInicio();
+            LocalTime fimNormal = hd.getFim();
+            
+            // O momento a verificar está no dia do horário normal, mas fora do intervalo:
+            
+            // Caso 1: Antes do início normal (Abertura antecipada)
+            if (hora.isBefore(inicioNormal)) {
+                // Abertura mais cedo até um máximo de N horas
+                LocalTime limiteInicio = inicioNormal.minusHours(maxHoras);
+                
+                // Verifica se a hora está entre limiteInicio e inicioNormal
+                // (limiteInicio <= hora < inicioNormal)
+                if (hora.isAfter(limiteInicio) || hora.equals(limiteInicio)) {
+                    return true;
+                }
+            }
+            
+            // Caso 2: Depois do fim normal (Fecho tardio)
+            if (hora.isAfter(fimNormal)) {
+                // Fecho mais tarde até um máximo de N horas
+                LocalTime limiteFim = fimNormal.plusHours(maxHoras);
+                
+                // Verifica se a hora está entre fimNormal e limiteFim
+                // (fimNormal < hora <= limiteFim)
+                if (hora.isBefore(limiteFim) || hora.equals(limiteFim)) {
+                    return true;
+                }
+            }
+        }
+        
+        return false; // Fora do horário normal e fora do período de extensão
+    }
+
+    /**
+     * Calcula o custo de Extensão para uma hora específica.
+     * @param time O momento (recolha/devolução) a verificar.
+     * @param estacao A estação local.
+     * @param modelo O modelo da viatura (necessário para o cálculo "variavel").
+     * @return O custo extra em cêntimos (long), ou 0 se não houver custo extra.
+     */
+    private long calcularCustoExtensao(LocalDateTime time, Estacao estacao, Modelo modelo) {
+        
+        // 1. Se estiver no horário normal, não há custo extra.
+        if (estacao.getHorario().estaDentroHorario(time)) {
+            return 0;
+        }
+        
+        // 2. Se não estiver no horário normal, verifica se a hora está coberta pelo horário extra (mas não pelo normal)
+        if (!estaEmHorarioNormalOuExtra(time, estacao)) {
+            return 0; // Fora do horário normal E fora do período de extensão = Fechado
+        }
+        
+        // 3. O momento está em horário extra. Calcula o custo.
+        String tipoPreco = estacao.getTipoPrecoExtensao();
+        
+        if ("taxa".equals(tipoPreco)) {
+            // Custo fixo (Pág 3, tabela)
+            return estacao.getPrecoTaxaExtensao();
+        } else if ("variavel".equals(tipoPreco)) {
+            // Metade do custo diário da viatura (Pág 3, tabela)
+            return modelo.getPreco() / 2;
+        }
+        
+        return 0;
+    }
+    
+    // =========================================================================
+    // CLASSE INTERNA - PainelAluguer
+    // =========================================================================
 
     /**
      * Classe que representa um painel onde irão ser colcoadas as informações de um
@@ -519,7 +670,8 @@ public class JanelaAluguer extends JFrame {
             JLabel lotacaoLbl = new JLabel("malas: " + bagagem);
             lotacaoLbl.setFont(mediaFont);
             add(lotacaoLbl);
-
+            
+            // O preço está em cêntimos, divide-se por 100.0f para ter Euros
             JLabel precoLbl = new JLabel(String.format("%.2f€", preco / 100.0f));
             precoLbl.setFont(grandeFont);
             add(precoLbl);
