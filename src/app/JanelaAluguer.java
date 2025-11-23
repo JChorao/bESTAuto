@@ -179,7 +179,7 @@ public class JanelaAluguer extends JFrame {
         }
 
         // 2. Validação estrita de "pelo menos um dia"
-        if (!inicio.isBefore(fim) || !dataInicio.isBefore(dataFim)) {
+        if (!inicio.isBefore(fim) || inicio.isEqual(fim)) {
             JOptionPane.showMessageDialog(null,
                     "A data de fim tem de ser superior em 1 dia, pelo menos, à data de início");
             return null;
