@@ -1,11 +1,9 @@
-package app;
+package aluguer;
 
 // 1. IMPORTS ADICIONADOS
 import java.util.List;
 import java.util.ArrayList;
 import pds.tempo.IntervaloTempo;
-import aluguer.Categoria; // Importar Categoria se Modelo.java precisar
-
 public class Viatura {
 
     private String matricula;

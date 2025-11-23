@@ -12,7 +12,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.time.DayOfWeek;
-import java.time.Duration; // Adicionado
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,13 +30,15 @@ import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableModel;
 import java.util.Collections;
 // IMPORTS ADICIONADOS
-import java.util.HashSet;
 import java.util.HashMap;
 import pds.util.GeradorCodigos;
 // FIM DOS IMPORTS ADICIONADOS
 
 import aluguer.BESTAuto;
 import aluguer.Categoria;
+import aluguer.Estacao;
+import aluguer.Modelo;
+import aluguer.Viatura;
 import pds.tempo.HorarioDiario;
 import pds.tempo.HorarioSemanal;
 import pds.tempo.IntervaloTempo;
@@ -97,15 +98,16 @@ public class JanelaAluguer extends JFrame {
      */
     public JanelaAluguer(BESTAuto a) {
         bestAuto = a;
-        setTitle("bEST Auto - A melhor experiência em aluguer de automóveis");
+        setTitle("Aluguer - bEST Auto - A melhor experiência em aluguer de automóveis");
 
         // 1. Buscar estações e ordená-las por nome
         estacoesOrdenadas = a.getEstacoes(); // getEstacoes() retorna um Vector<Estacao>
+        Vector<String> nomes = new Vector<>();
         // Ordena o Vector de Estações pelo nome
         Collections.sort(estacoesOrdenadas, (e1, e2) -> e1.getNome().compareTo(e2.getNome()));
 
         // 2. Criar o vetor de nomes a partir da lista ordenada
-        Vector<String> nomes = new Vector<>();
+        
         for(Estacao e : estacoesOrdenadas){ 
                 nomes.add(e.getNome());
         }
@@ -196,6 +198,7 @@ public class JanelaAluguer extends JFrame {
         // 4. Calcular dias base de aluguer (Blocos de 24h)
         long diasBaseAluguer = calcularDiasAluguer(intervaloSel);
 
+
         // 5. Procurar na estação local
         for (Viatura v : bestAuto.getViaturas()) {
             Modelo m = v.getModelo();
@@ -225,6 +228,7 @@ public class JanelaAluguer extends JFrame {
             }
         }
 
+        
         // 7. Apresentar os resultados e calcular o preço final
         if (viaturasParaAluguer.isEmpty()) {
             alugueres.add(new JLabel("-- SEM RESULTADOS --", JLabel.CENTER));

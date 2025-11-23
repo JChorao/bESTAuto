@@ -1,6 +1,5 @@
-package app;
+package aluguer;
 
-import aluguer.Categoria;
 
 public class Modelo {
 

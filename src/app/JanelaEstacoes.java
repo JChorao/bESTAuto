@@ -2,7 +2,6 @@ package app;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +28,8 @@ import static javax.swing.SpringLayout.*;
 
 import aluguer.BESTAuto;
 import aluguer.Categoria;
+import aluguer.Estacao;
+import aluguer.Viatura;
 
 @SuppressWarnings("serial")
 /**
@@ -53,7 +54,7 @@ public class JanelaEstacoes extends JFrame {
 	 */
 	public JanelaEstacoes(BESTAuto a) {
 		bestAuto = a;
-		setTitle("bEST Auto - A melhor experiência em aluguer de automóveis");
+		setTitle("Estacoes - bEST Auto - A melhor experiência em aluguer de automóveis");
 
 		// 1. Buscar estações e ordená-las por nome
 		Vector<String> nomes = new Vector<>();

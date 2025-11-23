@@ -3,9 +3,6 @@ package aluguer;
 import java.util.HashMap;
 import java.util.Vector;
 
-import app.Estacao;
-import app.Modelo;
-import app.Viatura;
 
 /**
  * Classe que representa o sistema

@@ -4,13 +4,16 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import aluguer.BESTAuto;
 import aluguer.Categoria;
 import app.LeitorFicheiros.Bloco;
 import pds.tempo.HorarioDiario;
 import pds.tempo.HorarioSemanal;
+
+import aluguer.Estacao;
+import aluguer.Modelo;
+import aluguer.Viatura;
 
 /**
  * Clase que arranca com o sistema
