@@ -32,6 +32,9 @@ import java.util.Collections;
 // IMPORTS ADICIONADOS
 import java.util.HashMap;
 import pds.util.GeradorCodigos;
+import java.util.List; 
+import java.util.Comparator; 
+import java.util.stream.Collectors; 
 // FIM DOS IMPORTS ADICIONADOS
 
 import aluguer.BESTAuto;
@@ -88,9 +91,11 @@ public class JanelaAluguer extends JFrame {
     private Vector<Estacao> estacoesOrdenadas;
 
     // Guarda o resultado da pesquisa: Para um Modelo, qual Viatura específica está disponível
-    private HashMap<Modelo, Viatura> viaturasParaAluguer;
+    // CORRIGIDO: Inicializar os HashMaps para evitar NullPointerException
+    private HashMap<Modelo, Viatura> viaturasParaAluguer = new HashMap<>(); 
     // Guarda a origem da viatura (true se for da central)
-    private HashMap<Modelo, Boolean> eDaCentral;
+    // CORRIGIDO: Inicializar os HashMaps para evitar NullPointerException
+    private HashMap<Modelo, Boolean> eDaCentral = new HashMap<>();
     // --- FIM DA ATUALIZAÇÃO ---
 
     /**
@@ -152,59 +157,53 @@ public class JanelaAluguer extends JFrame {
 
         apresentarHorario(hs);
     }
+    
+    // =========================================================================
+    // MÉTODOS AUXILIARES DE REUTILIZAÇÃO DE CÓDIGO
+    // =========================================================================
 
     /**
-     * Método chamado quando o utilizador pressiona o botão de pesquisar
+     * Valida as datas/horas selecionadas e cria o intervalo de tempo de aluguer.
+     *
+     * @return O IntervaloTempo de aluguer, ou null se a validação falhar.
      */
-    private void pesquisar() {
-        limparPesquisa();
-
-        // 1. Validação e Intervalo
+    private IntervaloTempo validateAndCreateInterval() {
         LocalDateTime inicio = LocalDateTime.of(dataInicio, horasInicio);
         LocalDateTime fim = LocalDateTime.of(dataFim, horasFim);
         
-        // Validação estrita de "pelo menos um dia" (o que existia no código anterior)
+        // NOVO: 1. A data e hora de recolha não podem ser anteriores ao momento atual
+        if (inicio.isBefore(LocalDateTime.now())) {
+            JOptionPane.showMessageDialog(null,
+                    "A data e hora de recolha não podem ser anteriores ao momento atual.");
+            return null;
+        }
+
+        // 2. Validação estrita de "pelo menos um dia"
         if (!inicio.isBefore(fim) || !dataInicio.isBefore(dataFim)) {
-             JOptionPane.showMessageDialog(null,
+            JOptionPane.showMessageDialog(null,
                     "A data de fim tem de ser superior em 1 dia, pelo menos, à data de início");
-             return;
+            return null;
         }
 
-        intervaloSel = IntervaloTempo.entre(inicio, fim);
+        return IntervaloTempo.entre(inicio, fim);
+    }
 
-        // --- Início da Lógica de Pesquisa e Preço ---
-        if (this.estacaoSelecionada == null) {
-            JOptionPane.showMessageDialog(this, "Nenhuma estação selecionada.");
-            return;
-        }
-        
-        // 2. Verificação de Horário da Estação (Pág 5, Passos 2)
-        if (!estaEmHorarioNormalOuExtra(inicio, estacaoSelecionada)) {
-            JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de recolha.");
-            return;
-        }
-        if (!estaEmHorarioNormalOuExtra(fim, estacaoSelecionada)) {
-            JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de entrega.");
-            return;
-        }
-        
-        Categoria categoriaSel = (Categoria) categCb.getSelectedItem();
-        Estacao central = this.estacaoSelecionada.getCentral();
+    /**
+     * Procura viaturas disponíveis na estação selecionada e, se aplicável, na central,
+     * para a categoria e intervalo de tempo selecionados.
+     * Popula os mapas viaturasParaAluguer e eDaCentral.
+     */
+    private void findAvailableVehicles(Categoria categoriaSel, Estacao localEstacao, Estacao central, IntervaloTempo intervalo) {
+        // Os maps estão agora inicializados e prontos para uso
+        viaturasParaAluguer.clear(); 
+        eDaCentral.clear();          
 
-        // 3. Inicializar os mapas de resultados
-        viaturasParaAluguer = new HashMap<>();
-        eDaCentral = new HashMap<>();
-        
-        // 4. Calcular dias base de aluguer (Blocos de 24h)
-        long diasBaseAluguer = calcularDiasAluguer(intervaloSel);
-
-
-        // 5. Procurar na estação local
+        // 1. Procurar na estação local
         for (Viatura v : bestAuto.getViaturas()) {
             Modelo m = v.getModelo();
-            if (v.getEstacao().equals(this.estacaoSelecionada) &&
+            if (v.getEstacao().equals(localEstacao) &&
                 m.getCategoria().equals(categoriaSel) &&
-                v.isDisponivel(intervaloSel)) {
+                v.isDisponivel(intervalo)) {
                 
                 if (!viaturasParaAluguer.containsKey(m)) {
                     viaturasParaAluguer.put(m, v);
@@ -213,13 +212,13 @@ public class JanelaAluguer extends JFrame {
             }
         }
 
-        // 6. Procurar na estação central (se existir)
+        // 2. Procurar na estação central (só se não encontrou um modelo local)
         if (central != null) {
             for (Viatura v : bestAuto.getViaturas()) {
                 Modelo m = v.getModelo();
                 if (v.getEstacao().equals(central) &&
                     m.getCategoria().equals(categoriaSel) &&
-                    v.isDisponivel(intervaloSel) && 
+                    v.isDisponivel(intervalo) && 
                     !viaturasParaAluguer.containsKey(m)) {
 
                     viaturasParaAluguer.put(m, v);
@@ -227,40 +226,116 @@ public class JanelaAluguer extends JFrame {
                 }
             }
         }
+    }
 
+    /**
+     * Calcula o preço total final para um Modelo, incluindo sobretaxa da central e custos de extensão.
+     */
+    private long calculateFinalPrice(Modelo m, long diasBaseAluguer, boolean isFromCentral, Estacao localEstacao, LocalDateTime inicio, LocalDateTime fim) {
+        long precoDiario = m.getPreco(); // Preço em cêntimos
+        long precoTotal = diasBaseAluguer * precoDiario; // A) Preço Base
+
+        // B) Sobretaxa da Central
+        if (isFromCentral) {
+            // Adicionar 2 dias extras (Pág 2, Passos 2)
+            precoTotal += 2 * precoDiario;
+        }
         
-        // 7. Apresentar os resultados e calcular o preço final
+        // C) Custo por Extensão de Horário
+        long custoRecolha = calcularCustoExtensao(inicio, localEstacao, m);
+        precoTotal += custoRecolha;
+        
+        long custoDevolucao = calcularCustoExtensao(fim, localEstacao, m);
+        precoTotal += custoDevolucao;
+
+        return precoTotal;
+    }
+    
+    /**
+     * Adiciona as indisponibilidades de trânsito necessárias para uma viatura
+     * que está a ser alugada a partir da estação central.
+     * * @param viaturaAlugada A viatura que será alugada.
+     * @param inicioReserva O início real da reserva (com hora).
+     * @param fimReserva O fim real da reserva (com hora).
+     * @param estacaoLocal A estação de recolha/devolução (não a de origem).
+     */
+    private void addTransitIndisponibilities(Viatura viaturaAlugada, LocalDateTime inicioReserva, LocalDateTime fimReserva, Estacao estacaoLocal) {
+        // "desde as 17:00 do dia anterior"
+        LocalDateTime inicioTransito = inicioReserva.toLocalDate().minusDays(1).atTime(17, 0);
+        viaturaAlugada.adicionarIndisponibilidade(
+            IntervaloTempo.entre(inicioTransito, inicioReserva), 
+            "Deslocar para " + estacaoLocal.getNome() // Motivo
+        );
+
+        // "até às 9:30 do dia seguinte"
+        LocalDateTime fimTransito = fimReserva.toLocalDate().plusDays(1).atTime(9, 30);
+        viaturaAlugada.adicionarIndisponibilidade(
+            IntervaloTempo.entre(fimReserva, fimTransito), 
+            "Retornar a " + viaturaAlugada.getEstacao().getNome() // Motivo (Estação de origem)
+        );
+    }
+
+    // =========================================================================
+    // MÉTODOS DE LÓGICA DE NEGÓCIO SIMPLIFICADOS
+    // =========================================================================
+
+    /**
+     * Método chamado quando o utilizador pressiona o botão de pesquisar
+     */
+    private void pesquisar() {
+        limparPesquisa();
+        
+        // 1. Validação e Intervalo
+        intervaloSel = validateAndCreateInterval();
+        if (intervaloSel == null) {
+            return;
+        }
+
+        if (this.estacaoSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Nenhuma estação selecionada.");
+            return;
+        }
+        
+        // 2. Validação de Horário da Estação
+        if (!estaEmHorarioNormalOuExtra(intervaloSel.getInicio(), estacaoSelecionada)) {
+            JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de recolha.");
+            return;
+        }
+        if (!estaEmHorarioNormalOuExtra(intervaloSel.getFim(), estacaoSelecionada)) {
+            JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de entrega.");
+            return;
+        }
+        
+        Categoria categoriaSel = (Categoria) categCb.getSelectedItem();
+        Estacao central = this.estacaoSelecionada.getCentral();
+        
+        // 3. Procurar viaturas
+        findAvailableVehicles(categoriaSel, estacaoSelecionada, central, intervaloSel);
+        
+        // 4. Calcular dias base de aluguer (Blocos de 24h)
+        long diasBaseAluguer = calcularDiasAluguer(intervaloSel);
+        
+        // 5. Apresentar os resultados e calcular o preço final
         if (viaturasParaAluguer.isEmpty()) {
             alugueres.add(new JLabel("-- SEM RESULTADOS --", JLabel.CENTER));
         } else {
-            for (Modelo m : viaturasParaAluguer.keySet()) {
+            
+            // Ordenar os Modelos por nome antes de iterar
+            List<Modelo> modelosOrdenados = viaturasParaAluguer.keySet().stream()
+                .sorted(Comparator.comparing(Modelo::getModelo))
+                .collect(Collectors.toList());
+            
+            for (Modelo m : modelosOrdenados) { 
+                boolean isFromCentral = eDaCentral.get(m);
+                long precoTotal = calculateFinalPrice(m, diasBaseAluguer, isFromCentral, 
+                                                     estacaoSelecionada, intervaloSel.getInicio(), 
+                                                     intervaloSel.getFim());
                 
-                long precoDiario = m.getPreco(); // Preço em cêntimos
-
-                // A) Calcular Preço Base (dias * precoDiario)
-                long precoTotal = diasBaseAluguer * precoDiario;
-
-                // B) Sobretaxa da Central
-                if (eDaCentral.get(m)) {
-                    // Adicionar 2 dias extras (Pág 2, Passos 2)
-                    precoTotal += 2 * precoDiario;
-                }
-                
-                // C) Custo por Extensão de Horário
-                
-                // C.1) Custo da Recolha
-                long custoRecolha = calcularCustoExtensao(inicio, estacaoSelecionada, m);
-                precoTotal += custoRecolha;
-                
-                // C.2) Custo da Devolução
-                long custoDevolucao = calcularCustoExtensao(fim, estacaoSelecionada, m);
-                precoTotal += custoDevolucao;
-
                 PainelAluguer pa = new PainelAluguer(
                     m.getModelo(),
                     m.getLotacao(),
                     m.getBagagem(),
-                    precoTotal, // O preço final em cêntimos (long)
+                    precoTotal, 
                     m               
                 );
                 alugueres.add(pa);
@@ -283,55 +358,36 @@ public class JanelaAluguer extends JFrame {
         Viatura viaturaAlugada = viaturasParaAluguer.get(modeloAlugado);
         Boolean isCentralWrapper = eDaCentral.get(modeloAlugado);
 
-        // Se por algum motivo não encontrar a viatura ou o booleano, parar.
         if (viaturaAlugada == null || isCentralWrapper == null) {
             JOptionPane.showMessageDialog(this, "Erro ao processar aluguer. Tente pesquisar novamente.");
             return;
         }
-        boolean isCentral = isCentralWrapper; // Converter de Boolean para boolean
+        boolean isCentral = isCentralWrapper; 
 
-        // 2. Gerar código de Aluguer
-        String code = GeradorCodigos.gerarCodigo(8); // "GeradorCodigos" de pds.util
+        // 2. Gerar código de Aluguer e obter matrículas/datas
+        String code = GeradorCodigos.gerarCodigo(8); 
         String motivoAluguer = "Aluguer " + code;
-        
-        // CORREÇÃO DA MATRÍCULA: Obter a matrícula diretamente do objeto Viatura
         String matricula = viaturaAlugada.getMatricula(); 
-
-        // 3. Obter datas da reserva (guardadas em 'intervaloSel' pelo 'pesquisar')
         LocalDateTime inicioReserva = intervaloSel.getInicio();
         LocalDateTime fimReserva = intervaloSel.getFim();
 
-        // 4. Adicionar indisponibilidade PRINCIPAL
-        // Esta é a indisponibilidade do aluguer em si
+        // 3. Adicionar indisponibilidade PRINCIPAL
         viaturaAlugada.adicionarIndisponibilidade(
             IntervaloTempo.entre(inicioReserva, fimReserva), 
             motivoAluguer
         );
 
-        // 5. Adicionar indisponibilidades de TRÂNSITO (se for da central)
-        // (Lógica da pág 6 do PDF)
+        // 4. Adicionar indisponibilidades de TRÂNSITO (se for da central)
         if (isCentral) {
-            // "desde as 17:00 do dia anterior"
-            LocalDateTime inicioTransito = inicioReserva.toLocalDate().minusDays(1).atTime(17, 0);
-            viaturaAlugada.adicionarIndisponibilidade(
-                IntervaloTempo.entre(inicioTransito, inicioReserva), 
-                "Deslocar para " + estacaoSelecionada.getNome() // Motivo
-            );
-
-            // "até às 9:30 do dia seguinte"
-            LocalDateTime fimTransito = fimReserva.toLocalDate().plusDays(1).atTime(9, 30);
-            viaturaAlugada.adicionarIndisponibilidade(
-                IntervaloTempo.entre(fimReserva, fimTransito), 
-                "Retornar a " + viaturaAlugada.getEstacao().getNome() // Motivo (Estação de origem)
-            );
+            addTransitIndisponibilities(viaturaAlugada, inicioReserva, fimReserva, estacaoSelecionada);
         }
 
-        // 6. Apresentar confirmação
+        // 5. Apresentar confirmação
         JOptionPane.showMessageDialog(this,
                 "<html>Obrigado por usar os nossos serviços!<br>Aluguer " + code + ", carro será " + matricula
                         + "</html>");
         
-        // 7. Limpar e pesquisar de novo
+        // 6. Limpar e pesquisar de novo
         limparPesquisa();
         pesquisar(); 
     }
@@ -506,11 +562,12 @@ public class JanelaAluguer extends JFrame {
     private void limparPesquisa() {
         alugueres.removeAll();
         // Limpar também os resultados da pesquisa anterior
-        if (viaturasParaAluguer != null) {
-            viaturasParaAluguer.clear();
+        // O null check é agora redundante, mas foi mantido por segurança no caso de reatribuição.
+        if (viaturasParaAluguer != null) { 
+            viaturasParaAluguer.clear();   
         }
-        if (eDaCentral != null) {
-            eDaCentral.clear();
+        if (eDaCentral != null) { 
+            eDaCentral.clear();           
         }
         // Forçar a atualização visual imediata
         alugueres.revalidate();
@@ -518,7 +575,7 @@ public class JanelaAluguer extends JFrame {
     }
     
     // =========================================================================
-    // MÉTODOS DE CÁLCULO DE PREÇO
+    // MÉTODOS DE CÁLCULO DE PREÇO (Inalterados, usados nos novos métodos)
     // =========================================================================
 
     /**
@@ -649,7 +706,7 @@ public class JanelaAluguer extends JFrame {
     }
     
     // =========================================================================
-    // CLASSE INTERNA - PainelAluguer
+    // CLASSE INTERNA - PainelAluguer (Inalterada)
     // =========================================================================
 
     /**
