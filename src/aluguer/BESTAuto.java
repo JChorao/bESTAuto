@@ -28,10 +28,8 @@ public class BESTAuto {
         }
     }
 
-    public Vector<Estacao> getEstacoes() {
-        
-        Vector<Estacao> v = new Vector<>(estacoes.values());
-        return v;
+    public HashMap<String, Estacao> getEstacoes() {
+        return estacoes;
     
     }
 

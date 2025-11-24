@@ -28,14 +28,15 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableModel;
-import java.util.Collections;
-// IMPORTS ADICIONADOS
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+
 import pds.util.GeradorCodigos;
-import java.util.List; 
-import java.util.Comparator; 
-import java.util.stream.Collectors; 
-// FIM DOS IMPORTS ADICIONADOS
+import java.util.List;
+import java.util.Map;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import aluguer.BESTAuto;
 import aluguer.Categoria;
@@ -85,18 +86,10 @@ public class JanelaAluguer extends JFrame {
     // A companhia a ser usada
     private BESTAuto bestAuto;
 
-    // --- CAMPOS ATUALIZADOS ---
-    // A estação atualmente selecionada
     private Estacao estacaoSelecionada;
-    private Vector<Estacao> estacoesOrdenadas;
-
-    // Guarda o resultado da pesquisa: Para um Modelo, qual Viatura específica está disponível
-    // CORRIGIDO: Inicializar os HashMaps para evitar NullPointerException
-    private HashMap<Modelo, Viatura> viaturasParaAluguer = new HashMap<>(); 
-    // Guarda a origem da viatura (true se for da central)
-    // CORRIGIDO: Inicializar os HashMaps para evitar NullPointerException
+    private HashMap<String, Estacao> estacoes;
+    private HashMap<Modelo, Viatura> viaturasParaAluguer = new HashMap<>();
     private HashMap<Modelo, Boolean> eDaCentral = new HashMap<>();
-    // --- FIM DA ATUALIZAÇÃO ---
 
     /**
      * Cria uma janela de aluguer
@@ -105,25 +98,32 @@ public class JanelaAluguer extends JFrame {
         bestAuto = a;
         setTitle("Aluguer - bEST Auto - A melhor experiência em aluguer de automóveis");
 
-        // 1. Buscar estações e ordená-las por nome
-        estacoesOrdenadas = a.getEstacoes(); // getEstacoes() retorna um Vector<Estacao>
-        Vector<String> nomes = new Vector<>();
-        // Ordena o Vector de Estações pelo nome
-        Collections.sort(estacoesOrdenadas, (e1, e2) -> e1.getNome().compareTo(e2.getNome()));
+        Vector<String> nomes;
+        try {
+            estacoes = a.getEstacoes();
 
-        // 2. Criar o vetor de nomes a partir da lista ordenada
-        
-        for(Estacao e : estacoesOrdenadas){ 
-                nomes.add(e.getNome());
+            estacoes = estacoes.entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.comparing(Estacao::getNome)))
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new));
+
+            nomes = new Vector<>(estacoes.values().stream()
+                    .map(Estacao::getNome)
+                    .collect(Collectors.toList()));
+
+        } catch (Exception e) {
+            nomes = new Vector<>();
+            nomes.add("Alcains");
+            nomes.add("Castelo Branco");
+            Collections.sort(nomes);
         }
-        
         setupJanela(nomes);
 
-        // 3. Definir a estação inicial (índice 0)
-        if (!estacoesOrdenadas.isEmpty()) {
-            // Isto vai chamar o escolherEstacao(0) automaticamente
-            // porque o 'setupEscolhaEstacao' define o 'setSelectedIndex(0)'
-            escolherEstacao(0); 
+        if (!estacoes.isEmpty()) {
+            escolherEstacao(0);
         }
     }
 
@@ -132,9 +132,9 @@ public class JanelaAluguer extends JFrame {
      * * @param selecionadaIndex o índice da estação selecionada
      */
     private void escolherEstacao(int selecionadaIndex) {
-        // Apanha a estação correta da nossa lista ordenada
-        if (selecionadaIndex >= 0 && selecionadaIndex < estacoesOrdenadas.size()) {
-            this.estacaoSelecionada = estacoesOrdenadas.get(selecionadaIndex);
+        // Selecionar a estação adequada
+        if (selecionadaIndex >= 0 && selecionadaIndex < estacoes.size()) {
+            this.estacaoSelecionada = estacoes.values().toArray(new Estacao[0])[selecionadaIndex];
         } else {
             this.estacaoSelecionada = null;
         }
@@ -147,41 +147,36 @@ public class JanelaAluguer extends JFrame {
      * método chamado quando o utilizador pressiona o botão de apresentar horário
      */
     private void apresentarHorario() {
-        // CORREÇÃO: Usar o horário da estação selecionada
+        // ir buscar o horário da estação atual em vez de vazio
         if (this.estacaoSelecionada == null) {
             JOptionPane.showMessageDialog(this, "Por favor, selecione uma estação.");
             return;
         }
-        
+
         HorarioSemanal hs = estacaoSelecionada.getHorario();
 
         apresentarHorario(hs);
     }
-    
-    // =========================================================================
-    // MÉTODOS AUXILIARES DE REUTILIZAÇÃO DE CÓDIGO
-    // =========================================================================
 
-    /**
-     * Valida as datas/horas selecionadas e cria o intervalo de tempo de aluguer.
-     *
-     * @return O IntervaloTempo de aluguer, ou null se a validação falhar.
-     */
-    private IntervaloTempo validateAndCreateInterval() {
+    // =====================
+    // MÉTODOS AUXILIARES
+    // =====================
+
+    private IntervaloTempo criarValidarIntervaloTempo() {
         LocalDateTime inicio = LocalDateTime.of(dataInicio, horasInicio);
         LocalDateTime fim = LocalDateTime.of(dataFim, horasFim);
-        
-        // NOVO: 1. A data e hora de recolha não podem ser anteriores ao momento atual
+
+        // Validação contra datas passadas
         if (inicio.isBefore(LocalDateTime.now())) {
             JOptionPane.showMessageDialog(null,
                     "A data e hora de recolha não podem ser anteriores ao momento atual.");
             return null;
         }
 
-        // 2. Validação estrita de "pelo menos um dia"
+        // Validação fim > inicio
         if (!inicio.isBefore(fim) || inicio.isEqual(fim)) {
             JOptionPane.showMessageDialog(null,
-                    "A data de fim tem de ser superior em 1 dia, pelo menos, à data de início");
+                    "A data de fim tem de ser superior a data de início.");
             return null;
         }
 
@@ -189,49 +184,55 @@ public class JanelaAluguer extends JFrame {
     }
 
     /**
-     * Procura viaturas disponíveis na estação selecionada e, se aplicável, na central,
+     * Procura viaturas disponíveis na estação selecionada e, se aplicável, na
+     * central,
      * para a categoria e intervalo de tempo selecionados.
      * Popula os mapas viaturasParaAluguer e eDaCentral.
      */
-    private void findAvailableVehicles(Categoria categoriaSel, Estacao localEstacao, Estacao central, IntervaloTempo intervalo) {
-        // Os maps estão agora inicializados e prontos para uso
-        viaturasParaAluguer.clear(); 
-        eDaCentral.clear();          
 
-        // 1. Procurar na estação local
+    private void procuraViaturasDisponiveis(Categoria categoriaSel, Estacao localEstacao, Estacao central,
+            IntervaloTempo intervalo) {
+
+        viaturasParaAluguer.clear();
+        eDaCentral.clear();
+
+        // Procurar na estação local
         for (Viatura v : bestAuto.getViaturas()) {
             Modelo m = v.getModelo();
             if (v.getEstacao().equals(localEstacao) &&
-                m.getCategoria().equals(categoriaSel) &&
-                v.isDisponivel(intervalo)) {
-                
+                    m.getCategoria().equals(categoriaSel) &&
+                    v.isDisponivel(intervalo)) {
+
                 if (!viaturasParaAluguer.containsKey(m)) {
                     viaturasParaAluguer.put(m, v);
-                    eDaCentral.put(m, false); // Local
+                    eDaCentral.put(m, false);
                 }
             }
         }
 
-        // 2. Procurar na estação central (só se não encontrou um modelo local)
+        // Procurar na estação central (só se não encontrou um modelo local)
         if (central != null) {
             for (Viatura v : bestAuto.getViaturas()) {
                 Modelo m = v.getModelo();
                 if (v.getEstacao().equals(central) &&
-                    m.getCategoria().equals(categoriaSel) &&
-                    v.isDisponivel(intervalo) && 
-                    !viaturasParaAluguer.containsKey(m)) {
+                        m.getCategoria().equals(categoriaSel) &&
+                        v.isDisponivel(intervalo) &&
+                        !viaturasParaAluguer.containsKey(m)) {
 
                     viaturasParaAluguer.put(m, v);
-                    eDaCentral.put(m, true); // Central
+                    eDaCentral.put(m, true);
                 }
             }
         }
     }
 
     /**
-     * Calcula o preço total final para um Modelo, incluindo sobretaxa da central e custos de extensão.
+     * Calcula o preço total final para um Modelo, incluindo sobretaxa da central e
+     * custos de extensão.
      */
-    private long calculateFinalPrice(Modelo m, long diasBaseAluguer, boolean isFromCentral, Estacao localEstacao, LocalDateTime inicio, LocalDateTime fim) {
+
+    private long calculaPrecoFinal(Modelo m, long diasBaseAluguer, boolean isFromCentral, Estacao localEstacao,
+            LocalDateTime inicio, LocalDateTime fim) {
         long precoDiario = m.getPreco(); // Preço em cêntimos
         long precoTotal = diasBaseAluguer * precoDiario; // A) Preço Base
 
@@ -240,53 +241,29 @@ public class JanelaAluguer extends JFrame {
             // Adicionar 2 dias extras (Pág 2, Passos 2)
             precoTotal += 2 * precoDiario;
         }
-        
+
         // C) Custo por Extensão de Horário
         long custoRecolha = calcularCustoExtensao(inicio, localEstacao, m);
         precoTotal += custoRecolha;
-        
+
         long custoDevolucao = calcularCustoExtensao(fim, localEstacao, m);
         precoTotal += custoDevolucao;
 
         return precoTotal;
     }
-    
-    /**
-     * Adiciona as indisponibilidades de trânsito necessárias para uma viatura
-     * que está a ser alugada a partir da estação central.
-     * * @param viaturaAlugada A viatura que será alugada.
-     * @param inicioReserva O início real da reserva (com hora).
-     * @param fimReserva O fim real da reserva (com hora).
-     * @param estacaoLocal A estação de recolha/devolução (não a de origem).
-     */
-    private void addTransitIndisponibilities(Viatura viaturaAlugada, LocalDateTime inicioReserva, LocalDateTime fimReserva, Estacao estacaoLocal) {
-        // "desde as 17:00 do dia anterior"
-        LocalDateTime inicioTransito = inicioReserva.toLocalDate().minusDays(1).atTime(17, 0);
-        viaturaAlugada.adicionarIndisponibilidade(
-            IntervaloTempo.entre(inicioTransito, inicioReserva), 
-            "Deslocar para " + estacaoLocal.getNome() // Motivo
-        );
 
-        // "até às 9:30 do dia seguinte"
-        LocalDateTime fimTransito = fimReserva.toLocalDate().plusDays(1).atTime(9, 30);
-        viaturaAlugada.adicionarIndisponibilidade(
-            IntervaloTempo.entre(fimReserva, fimTransito), 
-            "Retornar a " + viaturaAlugada.getEstacao().getNome() // Motivo (Estação de origem)
-        );
-    }
-
-    // =========================================================================
-    // MÉTODOS DE LÓGICA DE NEGÓCIO SIMPLIFICADOS
-    // =========================================================================
+    // =======================
+    // MÉTODOS Do Professor
+    // ========================
 
     /**
      * Método chamado quando o utilizador pressiona o botão de pesquisar
      */
+
     private void pesquisar() {
         limparPesquisa();
-        
-        // 1. Validação e Intervalo
-        intervaloSel = validateAndCreateInterval();
+
+        intervaloSel = criarValidarIntervaloTempo();
         if (intervaloSel == null) {
             return;
         }
@@ -295,49 +272,48 @@ public class JanelaAluguer extends JFrame {
             JOptionPane.showMessageDialog(this, "Nenhuma estação selecionada.");
             return;
         }
-        
-        // 2. Validação de Horário da Estação
+
+        // Ver data de aluguer
         if (!estaEmHorarioNormalOuExtra(intervaloSel.getInicio(), estacaoSelecionada)) {
             JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de recolha.");
             return;
         }
+        // Ver data de entrega
         if (!estaEmHorarioNormalOuExtra(intervaloSel.getFim(), estacaoSelecionada)) {
             JOptionPane.showMessageDialog(null, "A estação não está aberta no horário de entrega.");
             return;
         }
-        
+
         Categoria categoriaSel = (Categoria) categCb.getSelectedItem();
         Estacao central = this.estacaoSelecionada.getCentral();
-        
-        // 3. Procurar viaturas
-        findAvailableVehicles(categoriaSel, estacaoSelecionada, central, intervaloSel);
-        
-        // 4. Calcular dias base de aluguer (Blocos de 24h)
+
+        procuraViaturasDisponiveis(categoriaSel, estacaoSelecionada, central, intervaloSel);
+
         long diasBaseAluguer = calcularDiasAluguer(intervaloSel);
-        
-        // 5. Apresentar os resultados e calcular o preço final
+
+        // Resultados e calcular o preço final
+
         if (viaturasParaAluguer.isEmpty()) {
             alugueres.add(new JLabel("-- SEM RESULTADOS --", JLabel.CENTER));
         } else {
-            
+
             // Ordenar os Modelos por nome antes de iterar
             List<Modelo> modelosOrdenados = viaturasParaAluguer.keySet().stream()
-                .sorted(Comparator.comparing(Modelo::getModelo))
-                .collect(Collectors.toList());
-            
-            for (Modelo m : modelosOrdenados) { 
+                    .sorted(Comparator.comparing(Modelo::getModelo))
+                    .collect(Collectors.toList());
+
+            for (Modelo m : modelosOrdenados) {
                 boolean isFromCentral = eDaCentral.get(m);
-                long precoTotal = calculateFinalPrice(m, diasBaseAluguer, isFromCentral, 
-                                                     estacaoSelecionada, intervaloSel.getInicio(), 
-                                                     intervaloSel.getFim());
-                
+                long precoTotal = calculaPrecoFinal(m, diasBaseAluguer, isFromCentral,
+                        estacaoSelecionada, intervaloSel.getInicio(),
+                        intervaloSel.getFim());
+
                 PainelAluguer pa = new PainelAluguer(
-                    m.getModelo(),
-                    m.getLotacao(),
-                    m.getBagagem(),
-                    precoTotal, 
-                    m               
-                );
+                        m.getModelo(),
+                        m.getLotacao(),
+                        m.getBagagem(),
+                        precoTotal,
+                        m);
                 alugueres.add(pa);
             }
         }
@@ -346,14 +322,14 @@ public class JanelaAluguer extends JFrame {
         alugueres.repaint();
     }
 
-
     /**
      * Método chamado quando o utilizador pressiona o botão de alugar.
      * * @param valor o objeto selecionado. Este valor foi o usado
      * quando se criou o painel de aluguer
      */
+
     private void alugar(Object valor) {
-        // 1. Obter o Modelo e a Viatura específica que foi reservada
+       
         Modelo modeloAlugado = (Modelo) valor;
         Viatura viaturaAlugada = viaturasParaAluguer.get(modeloAlugado);
         Boolean isCentralWrapper = eDaCentral.get(modeloAlugado);
@@ -362,34 +338,27 @@ public class JanelaAluguer extends JFrame {
             JOptionPane.showMessageDialog(this, "Erro ao processar aluguer. Tente pesquisar novamente.");
             return;
         }
-        boolean isCentral = isCentralWrapper; 
-
-        // 2. Gerar código de Aluguer e obter matrículas/datas
-        String code = GeradorCodigos.gerarCodigo(8); 
+        
+        //Gerar código de Aluguer e obter matrículas/datas
+        String code = GeradorCodigos.gerarCodigo(8);
         String motivoAluguer = "Aluguer " + code;
-        String matricula = viaturaAlugada.getMatricula(); 
+        String matricula = viaturaAlugada.getMatricula();
         LocalDateTime inicioReserva = intervaloSel.getInicio();
         LocalDateTime fimReserva = intervaloSel.getFim();
 
-        // 3. Adicionar indisponibilidade PRINCIPAL
+        //Adicionar indisponibilidade
         viaturaAlugada.adicionarIndisponibilidade(
-            IntervaloTempo.entre(inicioReserva, fimReserva), 
-            motivoAluguer
-        );
+                IntervaloTempo.entre(inicioReserva, fimReserva),
+                motivoAluguer);
 
-        // 4. Adicionar indisponibilidades de TRÂNSITO (se for da central)
-        if (isCentral) {
-            addTransitIndisponibilities(viaturaAlugada, inicioReserva, fimReserva, estacaoSelecionada);
-        }
-
-        // 5. Apresentar confirmação
+        
+        //Apresentar confirmação
         JOptionPane.showMessageDialog(this,
                 "<html>Obrigado por usar os nossos serviços!<br>Aluguer " + code + ", carro será " + matricula
                         + "</html>");
-        
-        // 6. Limpar e pesquisar de novo
+
         limparPesquisa();
-        pesquisar(); 
+        pesquisar();
     }
 
     /**
@@ -456,7 +425,7 @@ public class JanelaAluguer extends JFrame {
         horasIniCb.setSelectedIndex(indiceHora);
         horasInicio = LocalTime.of(horasIniCb.getSelectedIndex() / 2, 30 * (horasIniCb.getSelectedIndex() % 2)); // Inicializar
         temposPn.add(horasIniCb);
-        
+
         temposPn.add(new JLabel("Até:"));
         dataFim = dataInicio.plusDays(1);
         ateBt = new JButton(dataFim.format(dataFormatter));
@@ -516,6 +485,7 @@ public class JanelaAluguer extends JFrame {
     /**
      * Cria a zona de escolha das estações e preenche-a com os respetivos nomes
      * * @param nomes os nomes das estações
+     * 
      * @return o painel configurado
      */
     private JPanel setupEscolhaEstacao(Vector<String> nomes) {
@@ -562,18 +532,19 @@ public class JanelaAluguer extends JFrame {
     private void limparPesquisa() {
         alugueres.removeAll();
         // Limpar também os resultados da pesquisa anterior
-        // O null check é agora redundante, mas foi mantido por segurança no caso de reatribuição.
-        if (viaturasParaAluguer != null) { 
-            viaturasParaAluguer.clear();   
+        // O null check é agora redundante, mas foi mantido por segurança no caso de
+        // reatribuição.
+        if (viaturasParaAluguer != null) {
+            viaturasParaAluguer.clear();
         }
-        if (eDaCentral != null) { 
-            eDaCentral.clear();           
+        if (eDaCentral != null) {
+            eDaCentral.clear();
         }
         // Forçar a atualização visual imediata
         alugueres.revalidate();
         alugueres.repaint();
     }
-    
+
     // =========================================================================
     // MÉTODOS DE CÁLCULO DE PREÇO (Inalterados, usados nos novos métodos)
     // =========================================================================
@@ -581,6 +552,7 @@ public class JanelaAluguer extends JFrame {
     /**
      * Calcula o número de dias (blocos de 24 horas) para efeitos de preço.
      * Mesmo um bloco incompleto conta como um dia completo.
+     * 
      * @param intervalo O intervalo de tempo.
      * @return O número de dias a pagar.
      */
@@ -588,123 +560,122 @@ public class JanelaAluguer extends JFrame {
         // 24h = 86400 segundos
         final long segundosPorDia = 86400;
         long duracaoSegundos = intervalo.duracao().getSeconds();
-        
+
         // Número de dias completos
         long dias = duracaoSegundos / segundosPorDia;
-        
+
         // Se houver resto (mesmo que 1 segundo), conta como mais um dia.
         if (duracaoSegundos % segundosPorDia > 0) {
             dias++;
         }
-        
+
         return dias;
     }
-    
+
     /**
-     * Verifica se um momento (data/hora) está no horário normal OU no horário extra de uma estação.
+     * Verifica se um momento (data/hora) está no horário normal OU no horário extra
+     * de uma estação.
      * Necessário para a validação inicial do aluguer.
-     * @param time O momento a verificar.
+     * 
+     * @param time    O momento a verificar.
      * @param estacao A estação.
-     * @return true se o momento está coberto pelo horário normal ou extra, false se a estação está fechada.
+     * @return true se o momento está coberto pelo horário normal ou extra, false se
+     *         a estação está fechada.
      */
     private boolean estaEmHorarioNormalOuExtra(LocalDateTime time, Estacao estacao) {
         HorarioSemanal hs = estacao.getHorario();
-        
-        // 1. Está no horário normal?
+
+        // Verfica horario normal
         if (hs.estaDentroHorario(time)) {
             return true;
         }
-        
-        // 2. Não está, verifica se está no período de extensão
+
+        // Verifica horario extra
         String tipoExtensao = estacao.getTipoExtensao();
-        
+
         if (tipoExtensao == null) {
-            return false; // Não tem extensão
+            return false; // Sem extensão definida
         }
-        
+
         if (tipoExtensao.equals("total")) {
             return true; // Está sempre disponível se houver extensão total
         }
-        
+
         if (tipoExtensao.equals("horas")) {
             int maxHoras = estacao.getMaxHorasExtensao();
-            
+
             // Obter o HorarioDiario para o dia
             HorarioDiario hd = hs.getHorarioDia(time.getDayOfWeek());
-            
-            // Se o dia estiver fechado (VAZIO), só aceita se for "total". Como não é, devolvemos false.
+
+            // Se tiver fechado e nao tiver tipo de horario "total" - return false
             if (hd.eVazio()) {
                 return false;
             }
-            
-            // É necessário saber as horas de início/fim do horário normal para o dia.
+
+            // Horas de início/fim do horário normal para o dia.
             LocalTime hora = LocalTime.from(time);
             LocalTime inicioNormal = hd.getInicio();
             LocalTime fimNormal = hd.getFim();
-            
-            // O momento a verificar está no dia do horário normal, mas fora do intervalo:
-            
-            // Caso 1: Antes do início normal (Abertura antecipada)
+
+            // Antes da abertura
             if (hora.isBefore(inicioNormal)) {
-                // Abertura mais cedo até um máximo de N horas
                 LocalTime limiteInicio = inicioNormal.minusHours(maxHoras);
-                
-                // Verifica se a hora está entre limiteInicio e inicioNormal
-                // (limiteInicio <= hora < inicioNormal)
+
+                // Verficar limite de abertura antecipada
                 if (hora.isAfter(limiteInicio) || hora.equals(limiteInicio)) {
                     return true;
                 }
             }
-            
-            // Caso 2: Depois do fim normal (Fecho tardio)
+
+            // Depois do fecho
             if (hora.isAfter(fimNormal)) {
-                // Fecho mais tarde até um máximo de N horas
                 LocalTime limiteFim = fimNormal.plusHours(maxHoras);
-                
-                // Verifica se a hora está entre fimNormal e limiteFim
-                // (fimNormal < hora <= limiteFim)
+
+                // Verifica limite de fecho alargado
                 if (hora.isBefore(limiteFim) || hora.equals(limiteFim)) {
                     return true;
                 }
             }
         }
-        
-        return false; // Fora do horário normal e fora do período de extensão
+
+        return false;
     }
 
     /**
      * Calcula o custo de Extensão para uma hora específica.
-     * @param time O momento (recolha/devolução) a verificar.
+     * 
+     * @param time    O momento (recolha/devolução) a verificar.
      * @param estacao A estação local.
-     * @param modelo O modelo da viatura (necessário para o cálculo "variavel").
+     * @param modelo  O modelo da viatura (necessário para o cálculo "variavel").
      * @return O custo extra em cêntimos (long), ou 0 se não houver custo extra.
      */
     private long calcularCustoExtensao(LocalDateTime time, Estacao estacao, Modelo modelo) {
-        
-        // 1. Se estiver no horário normal, não há custo extra.
+
+        // Verfica horario normal
         if (estacao.getHorario().estaDentroHorario(time)) {
             return 0;
         }
-        
-        // 2. Se não estiver no horário normal, verifica se a hora está coberta pelo horário extra (mas não pelo normal)
+
+        // Verifica horario extra
+
         if (!estaEmHorarioNormalOuExtra(time, estacao)) {
             return 0; // Fora do horário normal E fora do período de extensão = Fechado
         }
-        
-        // 3. O momento está em horário extra. Calcula o custo.
+
+        // Calcular custo de extensão
         String tipoPreco = estacao.getTipoPrecoExtensao();
-        
+
         if ("taxa".equals(tipoPreco)) {
-            // Custo fixo (Pág 3, tabela)
+            // Custo fixo
             return estacao.getPrecoTaxaExtensao();
         } else if ("variavel".equals(tipoPreco)) {
-            // Metade do custo diário da viatura (Pág 3, tabela)
+            // Custo Variável (50% do preço diário do modelo)
             return modelo.getPreco() / 2;
         }
-        
+
         return 0;
     }
-    
+
     // =========================================================================
     // CLASSE INTERNA - PainelAluguer (Inalterada)
     // =========================================================================
@@ -731,7 +702,7 @@ public class JanelaAluguer extends JFrame {
             JLabel lotacaoLbl = new JLabel("malas: " + bagagem);
             lotacaoLbl.setFont(mediaFont);
             add(lotacaoLbl);
-            
+
             // O preço está em cêntimos, divide-se por 100.0f para ter Euros
             JLabel precoLbl = new JLabel(String.format("%.2f€", preco / 100.0f));
             precoLbl.setFont(grandeFont);

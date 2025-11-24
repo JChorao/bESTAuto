@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
@@ -23,6 +24,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static javax.swing.SpringLayout.*;
 
@@ -47,7 +50,7 @@ public class JanelaEstacoes extends JFrame {
 
     // NOVOS CAMPOS PARA ARMAZENAR O ESTADO
     private Estacao estacaoSelecionada;
-    private Vector<Estacao> estacoesOrdenadas; 
+	private HashMap<String, Estacao> estacoes;
 
 	/**
 	 * Cria uma janela para apresentar informações sobre uma estação
@@ -56,20 +59,23 @@ public class JanelaEstacoes extends JFrame {
 		bestAuto = a;
 		setTitle("Estacoes - bEST Auto - A melhor experiência em aluguer de automóveis");
 
-		// 1. Buscar estações e ordená-las por nome
-		Vector<String> nomes = new Vector<>();
-		
+		Vector<String> nomes;
 		try{
-            // Usar Comparator.comparing(Estacao::getNome) se o Java target for 8+
-            estacoesOrdenadas = a.getEstacoes();
-			Collections.sort(estacoesOrdenadas, Comparator.comparing(Estacao::getNome));
+            estacoes = a.getEstacoes();
 
-			for(Estacao e : estacoesOrdenadas){ 
-				nomes.add(e.getNome());
-			}
+			estacoes = estacoes.entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.comparing(Estacao::getNome)))
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new));
 
+			nomes = new Vector<>(estacoes.values().stream().map(Estacao::getNome).collect(Collectors.toList()));
+			
 		}catch(Exception e){
 			// Fallback original
+			nomes = new Vector<>();
 			nomes.add("Alcains");
         	nomes.add("Castelo Branco");
 			Collections.sort(nomes);
@@ -77,8 +83,7 @@ public class JanelaEstacoes extends JFrame {
 
 		setupJanela(nomes);
         
-        // 2. Definir a estação inicial (índice 0) e popular as listas
-		if (estacoesOrdenadas != null && !estacoesOrdenadas.isEmpty()) {
+		if (estacoes != null && !estacoes.isEmpty()) {
 			escolherEstacao(0); 
 		}
 	}
@@ -88,11 +93,11 @@ public class JanelaEstacoes extends JFrame {
 	 * * @param selecionadaIndex o índice da estação selecionada
 	 */
 	private void escolherEstacao(int selecionadaIndex) {
-		// 1. Obter a estação selecionada
-        if (estacoesOrdenadas == null || selecionadaIndex < 0 || selecionadaIndex >= estacoesOrdenadas.size()) {
-			estacaoSelecionada = null;
-		} else {
-            this.estacaoSelecionada = estacoesOrdenadas.get(selecionadaIndex);
+		// Selecionar estação adequada
+        if (selecionadaIndex >= 0 && selecionadaIndex < estacoes.size()) {
+            this.estacaoSelecionada = estacoes.values().toArray(new Estacao[0])[selecionadaIndex];
+        } else {
+            this.estacaoSelecionada = null;
         }
 
         // Limpar todas as listas
@@ -102,20 +107,17 @@ public class JanelaEstacoes extends JFrame {
 		if (indisponibilidadesModel != null)
 			indisponibilidadesModel.setRowCount(0);
 
-        // Se nenhuma estação foi selecionada ou se as viaturas não foram carregadas, sair.
+        // Verificar estacao selecionada e Lista de Viaturas
         if (this.estacaoSelecionada == null || bestAuto.getViaturas() == null) {
             return;
         }
 
-		// 2. Encontrar as Categorias de Viatura que esta estação *efetivamente* tem
+		// Verificar todas as viaturas que pertencem à estação selecionada
 		Collection<Categoria> lista = bestAuto.getViaturas().stream()
-                // FILTRO: A viatura pertence à estação selecionada?
 				.filter(v -> v.getEstacao().equals(this.estacaoSelecionada))
 				.map(v -> v.getModelo().getCategoria())
-				// Coletar categorias únicas
 				.collect(Collectors.toSet()); 
-
-		// adicionar as novas categorias à lista
+				
 		categoriasModel.addAll(lista);
 	}
 
