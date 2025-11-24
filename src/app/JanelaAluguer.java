@@ -106,7 +106,7 @@ public class JanelaAluguer extends JFrame {
                     .sorted(Map.Entry.comparingByValue(Comparator.comparing(Estacao::getNome)))
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            Map.Entry::getValue,
+                            Map.Entry::getValue, 
                             (e1, e2) -> e1,
                             LinkedHashMap::new));
 

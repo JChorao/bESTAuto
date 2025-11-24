@@ -13,21 +13,6 @@ public class BESTAuto {
     public HashMap<String, Modelo> modelos;
     public HashMap<String, Viatura> viaturas;
 
-
-    public void adicionarEstacao(String id,Estacao e) {
-        if (estacoes == null) {
-            estacoes = new HashMap<>();
-        }
-        estacoes.put(id, e);
-    }
-    
-    public void adicionarCentral(String idEstacao, Estacao central) {
-        Estacao e = estacoes.get(idEstacao);
-        if (e != null) {
-            e.adicionarCentral(central);
-        }
-    }
-
     public HashMap<String, Estacao> getEstacoes() {
         return estacoes;
     
@@ -41,13 +26,6 @@ public class BESTAuto {
         return null;
     }
 
-    public void adicionarModelo(String id, Modelo m) {
-        if (modelos == null) {
-            modelos = new HashMap<>();
-        }
-        modelos.put(id, m);
-    }
-
     public Vector<Modelo> getModelos() {
         Vector<Modelo> v = new Vector<>(modelos.values());
         return v;
@@ -55,13 +33,6 @@ public class BESTAuto {
 
     public Modelo getModelo(String id) {
         return modelos.get(id);
-    }
-
-    public void adicionarViatura(Viatura v) {
-        if (viaturas == null) {
-            viaturas = new HashMap<>();
-        }
-        viaturas.put(v.getMatricula(), v);
     }
 
     public Vector<Viatura> getViaturas() {
@@ -86,5 +57,33 @@ public class BESTAuto {
             }
         }
         return resultado;
+    }
+
+     public void adicionarViatura(Viatura v) {
+        if (viaturas == null) {
+            viaturas = new HashMap<>();
+        }
+        viaturas.put(v.getMatricula(), v);
+    }
+
+    public void adicionarModelo(String id, Modelo m) {
+        if (modelos == null) {
+            modelos = new HashMap<>();
+        }
+        modelos.put(id, m);
+    }
+
+    public void adicionarCentral(String idEstacao, Estacao central) {
+        Estacao e = estacoes.get(idEstacao);
+        if (e != null) {
+            e.adicionarCentral(central);
+        }
+    }
+
+    public void adicionarEstacao(String id,Estacao e) {
+        if (estacoes == null) {
+            estacoes = new HashMap<>();
+        }
+        estacoes.put(id, e);
     }
 }

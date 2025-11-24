@@ -17,11 +17,6 @@ public class Viatura {
             this.estacao = estacao;
         }
 
-    public Viatura( Modelo modelo, Estacao estacao) {
-        this.modelo = modelo;
-        this.estacao = estacao;
-    }
-
     public String getMatricula() {
         return matricula;
     }
@@ -42,9 +37,9 @@ public class Viatura {
         this.indisponibilidades.add(new Indisponibilidade(intervalo, motivo));
     }
 
-    public boolean isDisponivel(IntervaloTempo searchInterval) {
+    public boolean isDisponivel(IntervaloTempo intervalo) {
         for (Indisponibilidade ind : indisponibilidades) {
-            if (ind.intervalo.interseta(searchInterval)) {
+            if (ind.intervalo.interseta(intervalo)) {
                 return false;
             }
         }

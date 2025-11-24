@@ -18,15 +18,6 @@ public class Estacao {
         this.horario = horario;
         this.central = central;
 	}
-    public Estacao(String nome, HorarioSemanal horario, Estacao central, String tipoExtensao, int maxHorasExtensao, String tipoPrecoExtensao, long precoTaxaExtensao) {
-        this.nome = nome;
-        this.horario = horario;
-        this.central = central;
-        this.tipoExtensao = tipoExtensao;
-        this.maxHorasExtensao = maxHorasExtensao;
-        this.tipoPrecoExtensao = tipoPrecoExtensao;
-        this.precoTaxaExtensao = precoTaxaExtensao;
-	}
 
     public void setExtensao(String tipoExtensao, int maxHoras) {
         this.tipoExtensao = tipoExtensao;
@@ -65,7 +56,7 @@ public class Estacao {
     public Estacao getCentral() {
         return central;
     }
-    
+
     public void adicionarCentral(Estacao e) {
         this.central = e;
     }
