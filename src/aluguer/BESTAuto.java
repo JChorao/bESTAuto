@@ -81,7 +81,7 @@ public class BESTAuto {
     public Vector<Viatura> getViaturasModelo(String modelo) {
         Vector<Viatura> resultado = new Vector<>();
         for (Viatura v : viaturas.values()) {
-            if (v.getModelo().getModelo().equals(modelo)) {
+            if (v.getModelo().getModeloString().equals(modelo)) {
                 resultado.add(v);
             }
         }

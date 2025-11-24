@@ -1,6 +1,5 @@
 package aluguer;
 
-
 public class Modelo {
 
     private String modelo;
@@ -19,21 +18,13 @@ public class Modelo {
         this.preco = preco;
     }
 
-
-    public String getModelo() {
+    public String getModeloString() {
         return modelo;
     }
 
     public Categoria getCategoria() {
         return categoria;
     }
-
-    @Override
-    public String toString() {
-        return "Modelo [modelo=" + modelo + ", categoria=" + categoria + ", marca=" + marca + ", lotacao=" + lotacao
-                + ", bagagem=" + bagagem + ", preco=" + preco + "]";
-    }
-    
 
     public int getLotacao() {
         return lotacao;
@@ -47,4 +38,9 @@ public class Modelo {
         return preco;
     }
 
+    @Override
+    public String toString() {
+        return "Modelo [modelo=" + modelo + ", categoria=" + categoria + ", marca=" + marca + ", lotacao=" + lotacao
+                + ", bagagem=" + bagagem + ", preco=" + preco + "]";
+    }
 }

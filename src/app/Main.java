@@ -50,41 +50,39 @@ public class Main {
 
 	/**
 	 * método para ler o ficheiro com a informação das estações
-	 * * @param best         a companhia
+	 * * @param best a companhia
+	 * 
 	 * @param estacoesFile o nome do ficheiro com a informação
 	 */
 	private static void readEstacoes(BESTAuto best, String estacoesFile) {
 		try {
 			List<LeitorFicheiros.Bloco> blocos = LeitorFicheiros.lerFicheiro(estacoesFile);
-            
-            // PRIMEIRO PASSO: Criar todas as estações e carregar Horário e Extensão/Preço
+
 			for (LeitorFicheiros.Bloco b : blocos) {
-				
-				// O construtor correto de Estacao é: (String nome, HorarioSemanal horario, Estacao central)
-				Estacao e = new Estacao(b.getValor("nome"), processarHorario(b), null); 
-				
+				// Completar este método
+				Estacao e = new Estacao(b.getValor("nome"), processarHorario(b), null);
+
 				processarExtensao(b, e);
 				processarPagamentoExtensao(b, e);
 
 				best.adicionarEstacao(b.getValor("id"), e);
 			}
-            
-            // SEGUNDO PASSO: Ligar as centrais (requer que todas as estações já existam em best.estacoes)
-            for (LeitorFicheiros.Bloco b : blocos) {
-                String estacaoId = b.getValor("id");
-                String centralId = processarCentral(best, b);
-                
-                if (centralId != null) {
-                    Estacao central = best.estacoes.get(centralId);
-                    if (central != null) {
-                        // Chama o método que irá procurar a Estacao a ser configurada (em best.estacoes)
-                        // e chamar o seu método adicionarCentral()
-                        best.adicionarCentral(estacaoId, central); 
-                    } else {
-                        System.err.println("Aviso: Central com ID " + centralId + " não encontrada para a estação " + estacaoId);
-                    }
-                }
-            }
+
+			// Ligar as centrais
+			for (LeitorFicheiros.Bloco b : blocos) {
+				String estacaoId = b.getValor("id");
+				String centralId = processarCentral(best, b);
+
+				if (centralId != null) {
+					Estacao central = best.estacoes.get(centralId);
+					if (central != null) {
+						best.adicionarCentral(estacaoId, central);
+					} else {
+						System.err.println(
+								"Aviso: Central com ID " + centralId + " não encontrada para a estação " + estacaoId);
+					}
+				}
+			}
 
 		} catch (IOException e) {
 			System.out.println("Erro na leitura do ficheiro " + estacoesFile);
@@ -97,56 +95,69 @@ public class Main {
 	 * Processa as informações sobre como calcular o extra por haver extensão de
 	 * horário
 	 * * @param b O bloco com a informação a processar
-     * @param e A estação a atualizar
+	 * 
+	 * @param e A estação a atualizar
 	 */
 	private static void processarPagamentoExtensao(Bloco b, Estacao e) {
+		// Completar este método
 		String tipoPrecario = b.getValor("preco_extensao");
 
 		// se não tem esta chave é porque não tem extensão
 		if (tipoPrecario == null) {
-			e.setPrecoExtensao(null, 0); // Não tem extensão de preço
+			e.setPrecoExtensao(null, 0);
 			return;
 		}
-		
-		String precoValorStr = b.getOpcoes("preco_extensao") != null && b.getOpcoes("preco_extensao").length > 0
-			? b.getOpcoes("preco_extensao")[0]
-			: null;
+
+		String precoValorStr = null;
+		String[] opcoes = b.getOpcoes("preco_extensao");
+
+		if (opcoes != null && opcoes.length > 0) {
+			precoValorStr = opcoes[0];
+		}
 
 		if (tipoPrecario.equals("taxa")) {
 			long precoTaxa = 0;
 			if (precoValorStr != null) {
 				try {
-					precoTaxa = Long.parseLong(precoValorStr); // Preço em cêntimos (long)
+					precoTaxa = Long.parseLong(precoValorStr);
 				} catch (NumberFormatException ex) {
 					System.err.println("Aviso: Valor de taxa de extensão inválido: " + precoValorStr);
 				}
 			}
 			e.setPrecoExtensao("taxa", precoTaxa);
+
 		} else if (tipoPrecario.equals("variavel")) {
-			e.setPrecoExtensao("variavel", 0); 
+			e.setPrecoExtensao("variavel", 0);
+
 		} else {
 			throw new UnsupportedOperationException("Campo desconhecido: " + tipoPrecario);
+
 		}
 	}
 
 	/**
 	 * Processa as informações sobre como proceder à extensão de horário
 	 * * @param b o bloco com a informação a processar
-     * @param e A estação a atualizar
+	 * 
+	 * @param e A estação a atualizar
 	 */
 	private static void processarExtensao(Bloco b, Estacao e) {
+		// Completar este método
 		String tipoExtensao = b.getValor("extensao");
-		
+
 		// se não tem esta chave é porque não tem extensão
 		if (tipoExtensao == null) {
 			e.setExtensao(null, 0);
 			return;
-		} 
-		
-		String maxHorasStr = b.getOpcoes("extensao") != null && b.getOpcoes("extensao").length > 0
-			? b.getOpcoes("extensao")[0]
-			: null;
-        
+		}
+
+		String maxHorasStr = null;
+		String[] opcoes = b.getOpcoes("extensao");
+
+		if (opcoes != null && opcoes.length > 0) {
+			maxHorasStr = opcoes[0];
+		}
+
 		if (tipoExtensao.equals("horas")) {
 			int maxHoras = 0;
 			if (maxHorasStr != null) {
@@ -157,8 +168,10 @@ public class Main {
 				}
 			}
 			e.setExtensao("horas", maxHoras);
+
 		} else if (tipoExtensao.equals("total")) {
 			e.setExtensao("total", 0); // O valor 'maxHoras' não é usado em "total", usamos 0.
+
 		} else {
 			throw new UnsupportedOperationException("Campo desconhecido: " + tipoExtensao);
 		}
@@ -167,64 +180,46 @@ public class Main {
 	/**
 	 * Processa as informações sobre se tem central ou não
 	 * * @param b o bloco com a informação a processar
-     * @return O ID da central ou null
+	 * 
+	 * @return O ID da central ou null
 	 */
 	private static String processarCentral(BESTAuto best, Bloco b) {
+
 		return b.getValor("central");
+
 	}
 
 	/**
 	 * Processa as informações sobre o horário
 	 * * @param b o bloco com a informação a processar
+	 * 
 	 * @return o horário semanal
 	 */
 	private static HorarioSemanal processarHorario(LeitorFicheiros.Bloco info) {
 		String tipoHorario = info.getValor("horario");
 		if (tipoHorario.equals("total"))
 			return HorarioSemanal.sempreAberto();
-        
 		String dias[] = info.getOpcoes("horario");
-
-		if (dias == null || dias.length == 0) {
-            throw new UnsupportedOperationException("Horário " + tipoHorario + " sem opções de dias!");
-		}
-
-        HorarioDiario hds[];
-        
-        if (tipoHorario.equals("semanal")) {
-            // Espera-se 5 dias (Seg-Sex)
-            if (dias.length != 5) {
-                throw new IllegalArgumentException("Horário 'semanal' deve ter 5 dias (seg-sex) mas tem " + dias.length);
-            }
-            hds = new HorarioDiario[5];
-        } else if (tipoHorario.equals("alargado")) {
-            // Espera-se 7 dias (Seg-Dom)
-            if (dias.length != 7) {
-                throw new IllegalArgumentException("Horário 'alargado' deve ter 7 dias (seg-dom) mas tem " + dias.length);
-            }
-            hds = new HorarioDiario[7];
-        } else {
-            throw new UnsupportedOperationException("Campo desconhecido: " + tipoHorario);
-        }
-        
+		HorarioDiario hds[] = new HorarioDiario[dias.length];
 		for (int i = 0; i < dias.length; i++) {
 			String horas[] = dias[i].split("-");
 			LocalTime ini = LocalTime.parse(horas[0]);
 			LocalTime fim = LocalTime.parse(horas[1]);
 			hds[i] = HorarioDiario.deAte(ini, fim);
 		}
-        
 		if (tipoHorario.equals("alargado"))
 			return HorarioSemanal.of(hds);
 		if (tipoHorario.equals("semanal"))
 			return HorarioSemanal.semanaUtil(hds);
 
-		return HorarioSemanal.sempreFechado();
+		// nunca devia chegar aqui
+		throw new UnsupportedOperationException("Campo desconhecido: " + tipoHorario);
 	}
 
 	/**
 	 * Lê o ficheiro com as informações sobre os modelos (código existente)
 	 * * @param best a companhia
+	 * 
 	 * @param file o nome do ficheiro
 	 */
 	private static void readModelos(BESTAuto best, String file) {
@@ -255,6 +250,7 @@ public class Main {
 	/**
 	 * Lê o ficheiro com as informações sobre as viaturas (código existente)
 	 * * @param best a companhia
+	 * 
 	 * @param file o nome do ficheiro
 	 */
 	private static void readViaturas(BESTAuto best, String file) {
@@ -265,7 +261,7 @@ public class Main {
 				String modelo = b.getValor("modelo");
 				String estacao = b.getValor("estacao");
 
-				Viatura v = new Viatura(matricula ,best.getModelo(modelo), best.estacoes.get(estacao));
+				Viatura v = new Viatura(matricula, best.getModelo(modelo), best.estacoes.get(estacao));
 				best.adicionarViatura(v);
 
 			}

@@ -82,10 +82,7 @@ public class JanelaEstacoes extends JFrame {
 		}
 
 		setupJanela(nomes);
-        
-		if (estacoes != null && !estacoes.isEmpty()) {
-			escolherEstacao(0); 
-		}
+
 	}
 
 	/**
@@ -100,24 +97,22 @@ public class JanelaEstacoes extends JFrame {
             this.estacaoSelecionada = null;
         }
 
+		// Escolher a estação e colocar na lista as categorias suportas por esta
+		Collection<Categoria> lista = bestAuto.getViaturas().stream()
+				.filter(v -> v.getEstacao().equals(this.estacaoSelecionada))
+				.map(v -> v.getModelo().getCategoria())
+				.collect(Collectors.toSet()).stream()
+                .sorted()
+				.collect(Collectors.toList());
+
         // Limpar todas as listas
 		categoriasModel.clear();
 		modelosModel.clear();
 		matriculasModel.clear();
+		
 		if (indisponibilidadesModel != null)
 			indisponibilidadesModel.setRowCount(0);
 
-        // Verificar estacao selecionada e Lista de Viaturas
-        if (this.estacaoSelecionada == null || bestAuto.getViaturas() == null) {
-            return;
-        }
-
-		// Verificar todas as viaturas que pertencem à estação selecionada
-		Collection<Categoria> lista = bestAuto.getViaturas().stream()
-				.filter(v -> v.getEstacao().equals(this.estacaoSelecionada))
-				.map(v -> v.getModelo().getCategoria())
-				.collect(Collectors.toSet()); 
-				
 		categoriasModel.addAll(lista);
 	}
 
@@ -134,15 +129,11 @@ public class JanelaEstacoes extends JFrame {
             return;
         }
 
-		// 1. Filtrar modelos que são da Categoria 'c' E que têm viaturas na 'estacaoSelecionada'.
+		// Colocar na lista o nome dos modelos que a estação selecionada tem nesta categoria
 		List<String> modelos = bestAuto.getViaturas().stream()
-                // FILTRO: A viatura pertence à estação selecionada?
                 .filter(v -> v.getEstacao().equals(this.estacaoSelecionada)) 
-                // FILTRO: O modelo da viatura é da categoria selecionada?
 				.filter(v -> v.getModelo().getCategoria() == c)
-                // Mapear para o nome do modelo (String)
-				.map(v -> v.getModelo().getModelo()) 
-                // Coletar nomes distintos e ordenar
+				.map(v -> v.getModelo().getModeloString()) 
 				.collect(Collectors.toSet()).stream()
                 .sorted()
 				.collect(Collectors.toList());
@@ -161,23 +152,18 @@ public class JanelaEstacoes extends JFrame {
 	 * * @param modelo nome do modelo selecionado
 	 */
 	private void escolherModelo(String modelo) {
-        // Garantir que a estação está selecionada
+        // Garantir que a estação e o modelo estão selecionados
         if (this.estacaoSelecionada == null || modelo == null) {
             matriculasModel.clear();
             indisponibilidadesModel.setRowCount(0);
             return;
         }
 
-		// 1. Filtrar as viaturas (matrículas) que pertencem ao 'modelo' E estão
-		// na 'estacaoSelecionada'.
+		// Colocar na lista todas as matrículas das viaturas do modelo selecionado,
 		List<String> matriculas = bestAuto.getViaturas().stream()
-                // FILTRO: A viatura pertence à estação selecionada?
                 .filter(v -> v.getEstacao().equals(this.estacaoSelecionada))
-                // FILTRO: O modelo da viatura é o selecionado?
-				.filter(v -> v.getModelo().getModelo().equals(modelo))
-                // Mapear para a matrícula
+				.filter(v -> v.getModelo().getModeloString().equals(modelo))
                 .map(Viatura::getMatricula)
-                // Coletar para uma lista
 				.collect(Collectors.toList());
 
 		// limpar as restantes listas
@@ -187,10 +173,6 @@ public class JanelaEstacoes extends JFrame {
 		// adicionar as matrículas à lista
 		matriculasModel.addAll(matriculas);
         
-        // Se houver matrículas, seleciona a primeira (para popular a tabela de indisponibilidades)
-        if (!matriculas.isEmpty()) {
-            escolherAutomovel(matriculas.get(0));
-        }
 	}
 
 	/**
@@ -200,29 +182,21 @@ public class JanelaEstacoes extends JFrame {
 	private void escolherAutomovel(String matricula) {
 		indisponibilidadesModel.setRowCount(0); // limpar a tabela
         
-        // 1. Encontrar a viatura
+        // Para cada indiponibilidade da viatura com a matricula selecionada chamar o método adicionarLinha para adicionar uma linha à tabela de indisponibilidades
         Viatura v = bestAuto.getViatura(matricula);
         
         if (v == null || v.getIndisponibilidades() == null) {
             return; // Se não encontrar a viatura ou não tiver indisponibilidades, sair.
         }
 
-		// 2. Para cada indisponibilidade da viatura, adicionar uma linha à tabela.
+		//Para cada indisponibilidade da viatura, adicionar uma linha à tabela.
         for (Viatura.Indisponibilidade ind : v.getIndisponibilidades()) {
             LocalDateTime inicio = ind.intervalo.getInicio();
             LocalDateTime fim = ind.intervalo.getFim();
             String motivo = ind.motivo;
             adicionarLinha(inicio, fim, motivo);
         }
-        
-        // Código placeholder original removido:
-		/*
-		adicionarLinha(LocalDateTime.now().plusDays(1).withHour(17).withMinute(0), LocalDateTime.now().plusDays(2),
-				"Deslocar para ALC");
-		adicionarLinha(LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(4), "Aluguer XX1234XX");
-		adicionarLinha(LocalDateTime.now().plusDays(4), LocalDateTime.now().plusDays(5).withHour(9).withMinute(30),
-				"Retornar a CTB");
-        */
+
 	}
 
 	/**

@@ -122,9 +122,6 @@ public class JanelaAluguer extends JFrame {
         }
         setupJanela(nomes);
 
-        if (!estacoes.isEmpty()) {
-            escolherEstacao(0);
-        }
     }
 
     /**
@@ -299,7 +296,7 @@ public class JanelaAluguer extends JFrame {
 
             // Ordenar os Modelos por nome antes de iterar
             List<Modelo> modelosOrdenados = viaturasParaAluguer.keySet().stream()
-                    .sorted(Comparator.comparing(Modelo::getModelo))
+                    .sorted(Comparator.comparing(Modelo::getModeloString))
                     .collect(Collectors.toList());
 
             for (Modelo m : modelosOrdenados) {
@@ -309,7 +306,7 @@ public class JanelaAluguer extends JFrame {
                         intervaloSel.getFim());
 
                 PainelAluguer pa = new PainelAluguer(
-                        m.getModelo(),
+                        m.getModeloString(),
                         m.getLotacao(),
                         m.getBagagem(),
                         precoTotal,
